@@ -36,7 +36,7 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	hashedPass, err := ac.hashPassword(user.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: UserCreationFailed})
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: UserCreationFailed + "1"})
 		return
 	}
 
@@ -46,7 +46,7 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	err = ac.authInteractor.RegisterUser(context.Background(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: UserCreationFailed})
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: UserCreationFailed + "2"})
 		return
 	}
 
@@ -74,7 +74,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ac.logger.LogError("error fetching the user", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to retrieve user from database.Please try again later"})
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to retrieve user.Please try again later"})
 		return
 	}
 	if !user.Isverified {

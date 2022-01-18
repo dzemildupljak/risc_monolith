@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/dzemildupljak/risc_monolith/server/infrastructure"
 	"github.com/gorilla/mux"
@@ -22,6 +23,8 @@ func main() {
 
 	api := ApiImplementation(*db, logger)
 
+	app_port := ":" + os.Getenv("PORT")
+
 	r := mux.NewRouter()
 
 	// Auth rounting
@@ -40,5 +43,5 @@ func main() {
 	usrR.HandleFunc("", api.authController.Index).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(app_port, r)
 }

@@ -2,7 +2,7 @@ CREATE TABLE users (
   id   BIGSERIAL PRIMARY KEY,
   name text      NOT NULL DEFAULT '',
   username  text NOT NULL DEFAULT '',
-  email  text NOT NULL DEFAULT '',
+  email  text NOT NULL DEFAULT '' UNIQUE,
   access_token text NOT NULL DEFAULT '',
   password  text NOT NULL DEFAULT '',
   address text NOT NULL DEFAULT '',

@@ -1,5 +1,4 @@
-FROM golang:1.17.6-alpine3.15
-
+FROM golang:1.17 as builder
 
 WORKDIR /app
 
@@ -7,11 +6,19 @@ COPY . /app
 
 RUN go mod download
 
-# Install Reflex for development
-RUN go install github.com/cespare/reflex@latest
+RUN CGO_ENABLED=0 go build -o /server/myapp server/*.go
 
-RUN go build -o server/server server/*.go
+FROM alpine:3.15
 
-EXPOSE 8004
+WORKDIR /app
 
-CMD ./server/server
+COPY --from=builder /server/myapp /server/myapp
+
+COPY --from=builder app/access-private.pem access-private.pem
+COPY --from=builder app/access-public.pem access-public.pem
+COPY --from=builder app/refresh-private.pem refresh-private.pem
+COPY --from=builder app/refresh-public.pem refresh-public.pem
+
+EXPOSE 8080
+
+CMD ["/server/myapp"]

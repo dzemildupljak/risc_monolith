@@ -53,9 +53,9 @@ func (q *AuthRepository) CreateUser(ctx context.Context, arg domain.CreateUserPa
 
 const createRegisterUserAuth = `-- name: CreateRegisterUser :one
 INSERT INTO users (
-  name, email, address, username, password, tokenhash, updatedat, createdat
+  name, email, username, password, tokenhash, updatedat, createdat
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+  $1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
 RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat
 `
@@ -64,7 +64,6 @@ func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.User
 	row := q.Queries.db.QueryRowContext(ctx, createRegisterUserAuth,
 		arg.Name,
 		arg.Email,
-		arg.Address,
 		arg.Username,
 		arg.Password,
 		arg.Tokenhash,

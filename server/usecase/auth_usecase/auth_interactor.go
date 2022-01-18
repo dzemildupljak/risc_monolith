@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"time"
@@ -56,8 +55,6 @@ type AccessTokenCustomClaims struct {
 
 // Authenticate checks the user credentials in request against the db and authenticates the request
 func (auth *AuthInteractor) Authenticate(reqUser *domain.User, user *domain.User) bool {
-	fmt.Println(user.Password)
-	fmt.Println(reqUser.Password)
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(reqUser.Password))
 	if err != nil {
 		auth.Logger.LogError("password hashes are not same")
@@ -85,13 +82,13 @@ func (auth *AuthInteractor) GenerateAccessToken(user *domain.User) (string, erro
 
 	if err != nil {
 		auth.Logger.LogError("unable to read access private key", err)
-		return "", errors.New("could not generate access token. please try again later")
+		return "", errors.New("could not generate access token. please try again later 1")
 	}
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
 		auth.Logger.LogError("unable to parse private key", "error", err)
-		return "", errors.New("could not generate access token. please try again later")
+		return "", errors.New("could not generate access token. please try again later 2")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
