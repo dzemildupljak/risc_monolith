@@ -51,22 +51,24 @@ func (q *AuthRepository) CreateUser(ctx context.Context, arg domain.CreateUserPa
 	return i, err
 }
 
-const createRegisterUserAuth = `-- name: CreateRegisterUser :one
+const createRegisterUser = `-- name: CreateRegisterUser :one
 INSERT INTO users (
-  name, email, username, password, tokenhash, updatedat, createdat
+  name, email, username, password, tokenhash, mail_verfy_code, mail_verfy_expire, updatedat, createdat
 ) VALUES (
-  $1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+  $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
-RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat
+RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, createdat, updatedat
 `
 
-func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.User) error {
-	row := q.Queries.db.QueryRowContext(ctx, createRegisterUserAuth,
+func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.CreateRegisterUserParams) error {
+	row := q.Queries.db.QueryRowContext(ctx, createRegisterUser,
 		arg.Name,
 		arg.Email,
 		arg.Username,
 		arg.Password,
 		arg.Tokenhash,
+		arg.MailVerfyCode,
+		arg.MailVerfyExpire,
 	)
 	var i domain.User
 	err := row.Scan(
@@ -79,6 +81,8 @@ func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.User
 		&i.Address,
 		&i.Tokenhash,
 		&i.Isverified,
+		&i.MailVerfyCode,
+		&i.MailVerfyExpire,
 		&i.Createdat,
 		&i.Updatedat,
 	)

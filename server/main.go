@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/dzemildupljak/risc_monolith/server/infrastructure"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
@@ -43,5 +44,9 @@ func main() {
 	usrR.HandleFunc("", api.authController.Index).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
-	http.ListenAndServe(app_port, r)
+	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
+	methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
+	origins := handlers.AllowedOrigins([]string{"*"})
+
+	http.ListenAndServe(app_port, handlers.CORS(headers, methods, origins)(r))
 }

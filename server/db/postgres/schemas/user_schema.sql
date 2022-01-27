@@ -8,6 +8,8 @@ CREATE TABLE users (
   address text NOT NULL DEFAULT '',
   tokenhash text NOT NULL DEFAULT '',
   isverified bool NOT NULL DEFAULT 'false',
+  mail_verfy_code text NOT NULL DEFAULT '',
+  mail_verfy_expire time,
   createdat time NOT NULL DEFAULT CURRENT_TIME,
   updatedat time NOT NULL DEFAULT CURRENT_TIME
 );

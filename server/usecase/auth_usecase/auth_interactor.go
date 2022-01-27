@@ -12,6 +12,7 @@ import (
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
+	"github.com/dzemildupljak/risc_monolith/server/utils"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -214,7 +215,16 @@ func (auth *AuthInteractor) ValidateRefreshToken(tokenString string) (string, st
 	return claims.UserID, claims.CustomKey, nil
 }
 
-func (auth *AuthInteractor) RegisterUser(ctx context.Context, usr domain.User) error {
+func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUserParams) error {
+	usr := domain.CreateRegisterUserParams{
+		MailVerfyCode:   utils.GenerateRandomString(8),
+		MailVerfyExpire: time.Now().Add(1 * time.Hour),
+		Name:            u.Name,
+		Email:           u.Email,
+		Username:        u.Username,
+		Password:        u.Password,
+		Tokenhash:       u.Tokenhash,
+	}
 	err := auth.AuthRepository.CreateRegisterUser(ctx, usr)
 
 	return err

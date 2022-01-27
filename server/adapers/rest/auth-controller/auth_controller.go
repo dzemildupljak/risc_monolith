@@ -3,6 +3,7 @@ package auth_rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
@@ -28,10 +29,14 @@ func NewAuthController(ai auth_usecase.AuthInteractor, logger usecase.Logger) *A
 		authInteractor: ai,
 	}
 }
+
 func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 
 	user := r.Context().Value(auth_usecase.UserKey{}).(domain.User)
+
+	fmt.Println(user)
 
 	hashedPass, err := ac.hashPassword(user.Password)
 	if err != nil {
@@ -43,7 +48,7 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	user.Password = hashedPass
 	user.Tokenhash = utils.GenerateRandomString(15)
 
-	err = ac.authInteractor.RegisterUser(context.Background(), user)
+	err = ac.authInteractor.RegisterUser(context.Background(), domain.CreateUserParams{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Tokenhash: user.Tokenhash})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: UserCreationFailed + "2"})
@@ -66,6 +71,7 @@ func (ac *AuthController) hashPassword(password string) (string, error) {
 }
 
 func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 
 	reqUser := r.Context().Value(auth_usecase.UserKey{}).(domain.User)
@@ -120,6 +126,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 
 	user := r.Context().Value(auth_usecase.UserKey{}).(domain.User)
@@ -143,6 +150,7 @@ func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 // Index return response which contain a listing of the resource of users.
 func (uc *AuthController) Index(w http.ResponseWriter, r *http.Request) {
+
 	uc.logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
 
 	users, err := uc.authInteractor.ShowAllUsers(r.Context())

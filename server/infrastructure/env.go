@@ -10,7 +10,7 @@ import (
 
 // Load is load configs from a env file.
 func Load(logger usecase.Logger) {
-	filePath := ".env"
+	filePath := ".env.local"
 
 	f, err := os.Open(filePath)
 	if err != nil {
