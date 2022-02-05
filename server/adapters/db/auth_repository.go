@@ -164,12 +164,12 @@ func (q *AuthRepository) GetOneUser(ctx context.Context, id int64) (domain.User,
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat FROM users
+SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, createdat, updatedat FROM users
 WHERE email = $1 LIMIT 1
 `
 
-func (q *AuthRepository) GetUserByEmail(ctx context.Context, email string) (domain.User, error) {
-	row := q.Queries.db.QueryRowContext(ctx, getUserByEmail, email)
+func (ac *AuthRepository) GetUserByEmail(ctx context.Context, email string) (domain.User, error) {
+	row := ac.Queries.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i domain.User
 	err := row.Scan(
 		&i.ID,
@@ -181,6 +181,8 @@ func (q *AuthRepository) GetUserByEmail(ctx context.Context, email string) (doma
 		&i.Address,
 		&i.Tokenhash,
 		&i.Isverified,
+		&i.MailVerfyCode,
+		&i.MailVerfyExpire,
 		&i.Createdat,
 		&i.Updatedat,
 	)
@@ -254,4 +256,15 @@ func (q *AuthRepository) GetUserById(ctx context.Context, id int64) (domain.User
 		&i.Updatedat,
 	)
 	return i, err
+}
+
+const verifyUserMail = `-- name: VerifyUserMail :exec
+UPDATE users
+SET isverified = true
+WHERE email = $1
+`
+
+func (q *AuthRepository) VerifyUserMail(ctx context.Context, email string) error {
+	_, err := q.Queries.db.ExecContext(ctx, verifyUserMail, email)
+	return err
 }

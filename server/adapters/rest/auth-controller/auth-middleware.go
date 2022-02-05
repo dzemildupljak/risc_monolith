@@ -4,14 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/mail"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 )
+
+// VerificationDataKey is used as the key for storing the VerificationData in context at middleware
+type VerificationDataKey struct{}
+
+// VerificationData represents the type for the data stored for verification.
+type VerificationData struct {
+	Email string `json:"email" validate:"required" sql:"email"`
+	Code  string `json:"code" validate:"required" sql:"code"`
+	Type  int64  `json:"type" sql:"type"`
+}
 
 // MiddlewareValidateUser validates the user in the request
 func (ac *AuthController) MiddlewareValidateUser(next http.Handler) http.Handler {
@@ -24,6 +37,15 @@ func (ac *AuthController) MiddlewareValidateUser(next http.Handler) http.Handler
 		err := json.NewDecoder(r.Body).Decode(user)
 		if err != nil {
 			ac.logger.LogError("deserialization of user json failed", "error", err)
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(err)
+			return
+		}
+
+		err = validEmail(user.Email)
+
+		if err != nil {
+			ac.logger.LogError("inalid email address", "error", err)
 			w.WriteHeader(500)
 			json.NewEncoder(w).Encode(err)
 			return
@@ -135,6 +157,75 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 	})
 }
 
+func (ac *AuthController) MiddlewareValidateVerificationData(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "application/json")
+		ac.logger.LogAccess("validating verification data middleware")
+
+		vals := r.URL.Query()
+
+		c, err := strconv.ParseInt(vals["type"][0], 10, 64)
+		if err != nil {
+			ac.logger.LogError("deserialization of verification code failed", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			return
+		}
+
+		verificationData := &VerificationData{
+			Email: vals["email"][0],
+			Code:  vals["code"][0],
+			Type:  c,
+		}
+
+		ac.logger.LogAccess("========== verificationData ==========", verificationData)
+
+		user, err := ac.authInteractor.UserByEmail(r.Context(), verificationData.Email)
+		if err != nil {
+			ac.logger.LogError("verification code failed", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			return
+		}
+
+		if verificationData.Type != 1 {
+			ac.logger.LogError("verification code failed1", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			return
+		}
+
+		validateExTime := validateExpirationTime(user.MailVerfyExpire)
+
+		if !validateExTime {
+			ac.logger.LogError("verification code failed2")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			return
+		}
+
+		if user.MailVerfyCode != verificationData.Code {
+			fmt.Println("user.MailVerfyCode != verificationData.Code",
+				user.MailVerfyCode != verificationData.Code)
+			fmt.Println("user.MailVerfyCode", user.MailVerfyCode)
+			fmt.Println("verificationData.Code", verificationData.Code)
+			ac.logger.LogError("verification code failed3", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			return
+		}
+
+		fmt.Println("end middleware")
+
+		// add the ValidationData to context
+		ctx := context.WithValue(r.Context(), VerificationDataKey{}, *verificationData)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func extractToken(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	authHeaderContent := strings.Split(authHeader, " ")
@@ -142,4 +233,14 @@ func extractToken(r *http.Request) (string, error) {
 		return "", errors.New("token not provided or malformed")
 	}
 	return authHeaderContent[1], nil
+}
+
+func validateExpirationTime(expTime time.Time) bool {
+	currTime := time.Now()
+	return currTime.Sub(expTime).Nanoseconds() > 0
+}
+
+func validEmail(email string) error {
+	_, err := mail.ParseAddress(email)
+	return err
 }

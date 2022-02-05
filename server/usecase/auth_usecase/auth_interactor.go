@@ -23,9 +23,6 @@ type UserKey struct{}
 // UserIDKey is used as a key for storing the UserID in context at middleware
 type UserIDKey struct{}
 
-// VerificationDataKey is used as the key for storing the VerificationData in context at middleware
-type VerificationDataKey struct{}
-
 type AuthInteractor struct {
 	AuthRepository AuthRepository
 	Config         Configurations
@@ -225,6 +222,7 @@ func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUse
 		Password:        u.Password,
 		Tokenhash:       u.Tokenhash,
 	}
+
 	err := auth.AuthRepository.CreateRegisterUser(ctx, usr)
 
 	return err

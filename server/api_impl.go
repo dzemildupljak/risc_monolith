@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 
-	psql "github.com/dzemildupljak/risc_monolith/server/adapers/db"
-	auth_rest "github.com/dzemildupljak/risc_monolith/server/adapers/rest/auth-controller"
+	psql "github.com/dzemildupljak/risc_monolith/server/adapters/db"
+	auth_rest "github.com/dzemildupljak/risc_monolith/server/adapters/rest/auth-controller"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
 )

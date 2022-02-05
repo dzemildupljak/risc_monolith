@@ -42,3 +42,8 @@ WHERE id = $1 LIMIT 1
 -- name: DeleteUserById :exec
 DELETE FROM users
 WHERE id = $1;
+
+-- name: VerifyUserMail :exec
+UPDATE users
+SET isverified = true
+WHERE email = $1;

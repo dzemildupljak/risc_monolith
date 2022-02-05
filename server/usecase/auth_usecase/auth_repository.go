@@ -15,4 +15,5 @@ type AuthRepository interface {
 	GetUserByUsername(ctx context.Context, username string) (domain.ShowLoginUser, error)
 	GetUserByEmail(ctx context.Context, email string) (domain.User, error)
 	GetUserById(ctx context.Context, id int64) (domain.User, error)
+	VerifyUserMail(ctx context.Context, email string) error
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
+	"github.com/dzemildupljak/risc_monolith/server/usecase/mail_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,10 +17,12 @@ import (
 var ErrUserAlreadyExists = "User already exists with the given email"
 var ErrUserNotFound = "No user account exists with given email. Please sign in first"
 var UserCreationFailed = "Unable to create user.Please try again later"
+var LinkToVerifyMail = "<p>Thanks for using our aplication</p><p>Confirm your account <a href=\"localhost:8080/verify/mail?email=dzemildupljak@mail.com&code=vaIujDpH&type=1\" target=\"_blank\">here</a></p>"
 
 // A AuthController belong to the interface layer.
 type AuthController struct {
 	authInteractor auth_usecase.AuthInteractor
+	mailInteractor mail_usecase.MailInteractor
 	logger         usecase.Logger
 }
 
@@ -50,10 +53,26 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	err = ac.authInteractor.RegisterUser(context.Background(), domain.CreateUserParams{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Tokenhash: user.Tokenhash})
 	if err != nil {
+		fmt.Println("err", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: UserCreationFailed + "2"})
 		return
 	}
+
+	// verifyMail := mail_usecase.NewMail()
+	// verifyMail.Reciever = user.Email
+	// verifyMail.MailTitle = "Verify email"
+	// verifyMail.MailBody = LinkToVerifyMail
+
+	verifyMail := mail_usecase.Mail{
+		Reciever:  user.Email,
+		MailTitle: "Verify email",
+		MailBody:  LinkToVerifyMail,
+	}
+
+	fmt.Println("verifyMail", verifyMail)
+
+	ac.mailInteractor.SendEmail(verifyMail)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&utils.GenericResponse{Status: true, Message: "user created successfully"})
@@ -122,6 +141,30 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Status:  true,
 		Message: "Successfully logged in",
 		Data:    &utils.AuthResponse{AccessToken: accessToken, RefreshToken: refreshToken, Username: user.Username},
+	})
+}
+
+func (ac *AuthController) VerifyMail(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	ac.logger.LogAccess("verifying the confimation code")
+	verificationData := r.Context().Value(VerificationDataKey{}).(VerificationData)
+
+	fmt.Println(verificationData)
+
+	err := ac.authInteractor.AuthRepository.VerifyUserMail(r.Context(), verificationData.Email)
+	if err != nil {
+		ac.logger.LogError("Failed to verify user mail try again later", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Failed to verify user mail try again later"})
+	}
+
+	ac.logger.LogAccess("successfully verified mail")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(&utils.GenericResponse{
+		Status:  true,
+		Message: "successfully verified mail",
 	})
 }
 

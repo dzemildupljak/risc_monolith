@@ -1,3 +1,51 @@
+// // MAIL_USERNAME="centarnitnp@gmail.com",
+// // MAIL_PASSWORD='centarnitnp11',
+
+// package main
+
+// import (
+// 	"fmt"
+// 	"net/smtp"
+// )
+
+// func main() {
+
+// 	// Sender data.
+// 	from := "centarnitnp@gmail.com"
+// 	password := "centarnitnp11"
+// 	// from := "risc_app@centarnit.com"
+// 	// password := "risc_appmonolith"
+
+// 	// Receiver email address.
+// 	to := []string{
+// 		"dzemildupljak4795@gmail.com",
+// 	}
+
+// 	// smtp server configuration.
+// 	smtpHost := "smtp.gmail.com"
+// 	smtpPort := "587"
+// 	// smtpHost := "mail.centarnit.com"
+// 	// smtpPort := "587"
+// 	// smtpPort := "465"
+
+// 	// Message.
+// 	message := []byte("This is a test email message.")
+
+// 	fmt.Println("message")
+// 	fmt.Println("smtp.PlainAuth")
+// 	// Authentication.
+// 	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+// 	fmt.Println("smtp.SendMail")
+// 	// Sending email.
+// 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return
+// 	}
+// 	fmt.Println("Email Sent Successfully!")
+// }
+
 package main
 
 import (
@@ -33,6 +81,10 @@ func main() {
 	authR.HandleFunc("/signup", api.authController.SignUp).Methods("POST")
 	authR.HandleFunc("/login", api.authController.Login).Methods("POST")
 	authR.Use(api.authController.MiddlewareValidateUser)
+
+	verfyR := r.PathPrefix("/verify").Subrouter()
+	verfyR.HandleFunc("/mail", api.authController.VerifyMail).Methods("GET")
+	verfyR.Use(api.authController.MiddlewareValidateVerificationData)
 
 	// Refresh token
 	refR := r.PathPrefix("/refresh-token").Subrouter()
