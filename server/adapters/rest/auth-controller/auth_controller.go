@@ -17,7 +17,6 @@ import (
 var ErrUserAlreadyExists = "User already exists with the given email"
 var ErrUserNotFound = "No user account exists with given email. Please sign in first"
 var UserCreationFailed = "Unable to create user.Please try again later"
-var LinkToVerifyMail = "<p>Thanks for using our aplication</p><p>Confirm your account <a href=\"localhost:8080/verify/mail?email=dzemildupljak@mail.com&code=vaIujDpH&type=1\" target=\"_blank\">here</a></p>"
 
 // A AuthController belong to the interface layer.
 type AuthController struct {
@@ -51,7 +50,7 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	user.Password = hashedPass
 	user.Tokenhash = utils.GenerateRandomString(15)
 
-	err = ac.authInteractor.RegisterUser(context.Background(), domain.CreateUserParams{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Tokenhash: user.Tokenhash})
+	user.MailVerfyCode, err = ac.authInteractor.RegisterUser(context.Background(), domain.CreateUserParams{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Tokenhash: user.Tokenhash})
 	if err != nil {
 		fmt.Println("err", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -59,20 +58,15 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// verifyMail := mail_usecase.NewMail()
-	// verifyMail.Reciever = user.Email
-	// verifyMail.MailTitle = "Verify email"
-	// verifyMail.MailBody = LinkToVerifyMail
-
 	verifyMail := mail_usecase.Mail{
 		Reciever:  user.Email,
 		MailTitle: "Verify email",
-		MailBody:  LinkToVerifyMail,
+		Type:      1,
 	}
 
-	fmt.Println("verifyMail", verifyMail)
+	fmt.Println("verifyMail", verifyMail, user)
 
-	ac.mailInteractor.SendEmail(verifyMail)
+	ac.mailInteractor.SendEmail(verifyMail, user.MailVerfyCode, user.Name)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(&utils.GenericResponse{Status: true, Message: "user created successfully"})

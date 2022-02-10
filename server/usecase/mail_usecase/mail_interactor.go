@@ -8,10 +8,18 @@ import (
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
 )
 
+var LinkToVerifyMail = "<p>Thanks for using our aplication</p><p>Confirm your account <a href=\"localhost:8080/verify/mail?email=dzemildupljak@mail.com&code=vaIujDpH&type=1\" target=\"_blank\">here</a></p>"
+
+type templatedata struct {
+	Name string
+	URL  string
+}
+
 type Mail struct {
 	Reciever  string
 	MailTitle string
 	MailBody  string
+	Type      int
 }
 
 func NewMail() *Mail {
@@ -28,15 +36,9 @@ func NewMailInteractor(l usecase.Logger) *MailInteractor {
 	}
 }
 
-func (mi *MailInteractor) SendEmail(mail Mail) {
-	// go func(mail Mail) {
-	fmt.Println("============== mail ==============", mail)
+func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 	from := os.Getenv("MAIL_USERNAME")
 	password := os.Getenv("MAIL_PASSWORD")
-	// from := "centarnitnp@gmail.com"
-	// password := "centarnitnp11"
-	// from := "risc_app@centarnit.com"
-	// password := "risc_appmonolith"
 
 	// Receiver email address.
 	to := []string{mail.Reciever}
@@ -44,15 +46,7 @@ func (mi *MailInteractor) SendEmail(mail Mail) {
 	// smtp server configuration.
 	smtpHost := os.Getenv("MAIL_SMTP")
 	smtpPort := os.Getenv("MAIL_PORT")
-	// smtpHost := "smtp.gmail.com"
-	// smtpPort := "587"
-	// smtpHost := "mail.centarnit.com"
-	// smtpPort := "587"
-
-	fmt.Println("Message")
-
-	// Message.
-	message := []byte(mail.MailBody)
+	host_adress := os.Getenv("HOST_ADRESS")
 
 	fmt.Println("Authentication")
 
@@ -60,17 +54,33 @@ func (mi *MailInteractor) SendEmail(mail Mail) {
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
 	fmt.Println("Sending email")
-	fmt.Print("\n\n", smtpHost+":"+smtpPort, auth, from, to, message, "\n\n")
+
+	templateData := templatedata{
+		Name: "Dzemil Dupljak",
+		URL:  host_adress + "/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+		// URL:  "http://localhost:8080/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+		// URL:  "localhost:8080/verify/mail?email=" + "dzemildupljak@mail.com" + "&code=" + "vaIujDpH" + "&type=" + "1",
+	}
+
+	msg := []byte(
+		"From: RISC Novi Pazar <" + from + ">\r\n" +
+			"To: " + to[0] + "\r\n" +
+			"Subject: RISC Novi Pazar - verify email!\r\n" +
+			"MIME: MIME-version: 1.0\r\n" +
+			"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
+			"\r\n" +
+			`<html>
+				<h1>` + user_name + `</h1>
+				<a href="` + templateData.URL + `" target="_blank">Confirm email address</a>
+			</html>`)
 
 	// Sending email.
 	go func() {
-		err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+		err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, []byte(msg))
 		if err != nil {
-			// mi.Logger.LogError("Email Sent Failed:", err)
 			fmt.Println("err", err)
 		}
-		// mi.Logger.LogAccess("Email Sent Successfully!")
 		fmt.Println("Email Sent Successfully!")
 	}()
-	// }(mail)
+
 }

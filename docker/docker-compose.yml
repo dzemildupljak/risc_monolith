@@ -11,6 +11,20 @@ services:
       - "5430:5432"
     volumes:
       - data:/var/lib/postgresql/data
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ../server/db/postgres/migrations:/app/server/db/postgres/migrations
+    command: ["-path", 
+              "/app/server/db/postgres/migrations", 
+              "-database", 
+              "postgres://${DB_USER}:${DB_PASSWORD}@risc-db:5432/${DB_NAME}?sslmode=disable", 
+              "up",
+            ]
+    links: 
+      - risc-db
+    depends_on:
+      - risc-app
   risc-app:
     container_name: risc-app-dev
     image: risc-app-img-dev

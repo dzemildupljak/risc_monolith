@@ -212,7 +212,7 @@ func (auth *AuthInteractor) ValidateRefreshToken(tokenString string) (string, st
 	return claims.UserID, claims.CustomKey, nil
 }
 
-func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUserParams) error {
+func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUserParams) (string, error) {
 	usr := domain.CreateRegisterUserParams{
 		MailVerfyCode:   utils.GenerateRandomString(8),
 		MailVerfyExpire: time.Now().Add(1 * time.Hour),
@@ -225,7 +225,7 @@ func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUse
 
 	err := auth.AuthRepository.CreateRegisterUser(ctx, usr)
 
-	return err
+	return usr.MailVerfyCode, err
 }
 
 func (auth *AuthInteractor) UserByEmail(ctx context.Context, email string) (domain.User, error) {
