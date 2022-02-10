@@ -45,6 +45,8 @@ docker-compose-prod-config:
 
 heroku-logs:
 	heroku logs --tail -a serene-fortress-45917
+include .env
+
 heroku-container-push: 
 	cd docker/ && heroku container:push web --app serene-fortress-45917 --context-path ../ && cd ..
 heroku-container-release:
@@ -56,10 +58,10 @@ create-migration:
 	@read -p "Enter migration name: " migration_name; \
 	migrate create -ext sql -dir server/db/postgres/migrations -seq $$migration_name
 migrate-up:
-	migrate -path server/db/postgres/migrations -database "postgresql://postgres:postgres@localhost:5432/risc_monolith?sslmode=disable" -verbose up
+	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose up
 
 migrate-down:
-	migrate -path server/db/postgres/migrations -database "postgresql://postgres:postgres@localhost:5432/risc_monolith?sslmode=disable" -verbose down
+	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose down
 
 
 
@@ -77,4 +79,3 @@ generate-new-rsa-keys:
 	make generate-rsa-private-key-refresh
 	make generate-rsa-public-key-access
 	make generate-rsa-public-key-refresh
-
