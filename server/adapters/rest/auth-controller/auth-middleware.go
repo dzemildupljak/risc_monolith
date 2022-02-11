@@ -9,7 +9,6 @@ import (
 	"net/mail"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
@@ -157,7 +156,7 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 	})
 }
 
-func (ac *AuthController) MiddlewareValidateVerificationData(next http.Handler) http.Handler {
+func (ac *AuthController) MiddlewareValidateMailVerificationData(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
@@ -203,7 +202,7 @@ func (ac *AuthController) MiddlewareValidateVerificationData(next http.Handler) 
 			return
 		}
 
-		validateExTime := validateExpirationTime(user.MailVerfyExpire)
+		validateExTime := utils.ValidateExpirationTime(user.MailVerfyExpire.Time)
 
 		if !validateExTime {
 			ac.logger.LogError("verification code failed2")
@@ -236,11 +235,6 @@ func extractToken(r *http.Request) (string, error) {
 		return "", errors.New("token not provided or malformed")
 	}
 	return authHeaderContent[1], nil
-}
-
-func validateExpirationTime(expTime time.Time) bool {
-	currTime := time.Now()
-	return currTime.Sub(expTime).Nanoseconds() > 0
 }
 
 func validEmail(email string) error {

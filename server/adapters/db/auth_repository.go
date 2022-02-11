@@ -234,13 +234,13 @@ func (q *AuthRepository) UpdateUser(ctx context.Context, arg domain.UpdateUserPa
 	return i, err
 }
 
-const getUserByIdAuth = `-- name: GetUserById :one
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat FROM users
+const getUserById = `-- name: GetUserById :one
+SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat FROM users
 WHERE id = $1 LIMIT 1
 `
 
 func (q *AuthRepository) GetUserById(ctx context.Context, id int64) (domain.User, error) {
-	row := q.Queries.db.QueryRowContext(ctx, getUserByIdAuth, id)
+	row := q.Queries.db.QueryRowContext(ctx, getUserById, id)
 	var i domain.User
 	err := row.Scan(
 		&i.ID,
@@ -252,6 +252,10 @@ func (q *AuthRepository) GetUserById(ctx context.Context, id int64) (domain.User
 		&i.Address,
 		&i.Tokenhash,
 		&i.Isverified,
+		&i.MailVerfyCode,
+		&i.MailVerfyExpire,
+		&i.PasswordVerfyCode,
+		&i.PasswordVerfyExpire,
 		&i.Createdat,
 		&i.Updatedat,
 	)
@@ -266,6 +270,17 @@ WHERE email = $1
 
 func (q *AuthRepository) VerifyUserMail(ctx context.Context, email string) error {
 	_, err := q.Queries.db.ExecContext(ctx, verifyUserMail, email)
+	return err
+}
+
+const generateResetPasswordCode = `-- name: GenerateResetPasswordCode :exec
+UPDATE users
+SET password_verfy_code = $1, password_verfy_expire = $2
+WHERE email = $3
+`
+
+func (q *AuthRepository) GenerateResetPasswordCode(ctx context.Context, arg domain.GenerateResetPasswordCodeParams) error {
+	_, err := q.Queries.db.ExecContext(ctx, generateResetPasswordCode, arg.PasswordVerfyCode, arg.PasswordVerfyExpire, arg.Email)
 	return err
 }
 

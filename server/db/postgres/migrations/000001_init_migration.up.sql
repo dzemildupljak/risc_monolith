@@ -9,7 +9,7 @@ CREATE TABLE users (
   tokenhash text NOT NULL DEFAULT '',
   isverified bool NOT NULL DEFAULT 'false',
   mail_verfy_code text NOT NULL DEFAULT '',
-  mail_verfy_expire time,
+  mail_verfy_expire timestamp with time zone,
   createdat time NOT NULL DEFAULT CURRENT_TIME,
   updatedat time NOT NULL DEFAULT CURRENT_TIME
 );

@@ -36,7 +36,7 @@ func main() {
 
 	verfyR := r.PathPrefix("/verify").Subrouter()
 	verfyR.HandleFunc("/mail", api.authController.VerifyMail).Methods("GET")
-	verfyR.Use(api.authController.MiddlewareValidateVerificationData)
+	verfyR.Use(api.authController.MiddlewareValidateMailVerificationData)
 
 	// Refresh token
 	refR := r.PathPrefix("/refresh-token").Subrouter()

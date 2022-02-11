@@ -2,6 +2,7 @@ package auth_rest
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -217,21 +218,28 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 		json.NewEncoder(w).Encode(err)
 		return
 	}
-	hashOldPass, err := ac.hashPassword(resPassData.Old_password)
-	if err != nil {
+
+	validateExTime := utils.ValidateExpirationTime(user.PasswordVerfyExpire.Time)
+
+	if !validateExTime {
+		ac.logger.LogError("verification code failed2")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later2"})
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later2.5"})
 		return
 	}
 
-	fmt.Println("hashOldPass", hashOldPass)
-	fmt.Println("user.Password", user.Password)
-	fmt.Println("resPassData.New_password", resPassData.New_password)
-	fmt.Println("resPassData.New_password_second", resPassData.New_password_second)
-
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(resPassData.Old_password))
 	if err != nil {
-		ac.authInteractor.Logger.LogError("old password are not same")
+		ac.authInteractor.Logger.LogError("old password invalid")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later2.5.1"})
+		return
+	}
+
+	if user.PasswordVerfyCode != resPassData.Code {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later2.6"})
+		return
 	}
 
 	if resPassData.New_password != resPassData.New_password_second {
@@ -289,13 +297,19 @@ func (ac *AuthController) GeneratePassResetCode(w http.ResponseWriter, r *http.R
 		Type:      2,
 	}
 
-	//TODO geenrate password reset code and query to write password code into table
 	rand.Seed(time.Now().UnixNano())
 	min := 100000
 	max := 999999
 	user.PasswordVerfyCode = fmt.Sprint(rand.Intn(max-min+1) + min)
-	user.PasswordVerfyExpire = time.Now().Add(1 * time.Hour)
+	user.PasswordVerfyExpire = sql.NullTime{Time: time.Now().Local().Add(1 * time.Hour), Valid: true}
 
+	resetPassCodeUpdate := domain.GenerateResetPasswordCodeParams{
+		PasswordVerfyCode:   user.PasswordVerfyCode,
+		PasswordVerfyExpire: user.PasswordVerfyExpire.Time,
+		Email:               user.Email,
+	}
+
+	ac.authInteractor.AuthRepository.GenerateResetPasswordCode(r.Context(), resetPassCodeUpdate)
 	ac.mailInteractor.SendEmail(verfyPassword, user.PasswordVerfyCode, user.Name)
 
 	ac.logger.LogAccess("successfully mailed password reset code")

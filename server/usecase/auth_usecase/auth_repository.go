@@ -17,4 +17,5 @@ type AuthRepository interface {
 	GetUserById(ctx context.Context, id int64) (domain.User, error)
 	VerifyUserMail(ctx context.Context, email string) error
 	ChangePassword(ctx context.Context, arg domain.ChangePasswordParams) error
+	GenerateResetPasswordCode(ctx context.Context, arg domain.GenerateResetPasswordCodeParams) error
 }
