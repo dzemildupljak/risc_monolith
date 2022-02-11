@@ -5,19 +5,21 @@ import (
 )
 
 type User struct {
-	ID              int64     `json:"id"`
-	Name            string    `json:"name"`
-	Username        string    `json:"username"`
-	Email           string    `json:"email"`
-	AccessToken     string    `json:"access_token"`
-	Password        string    `json:"password"`
-	Address         string    `json:"address"`
-	Tokenhash       string    `json:"tokenhash"`
-	Isverified      bool      `json:"isverified"`
-	MailVerfyCode   string    `json:"mail_verfy_code"`
-	MailVerfyExpire time.Time `json:"mail_verfy_expire"`
-	Createdat       time.Time `json:"createdat"`
-	Updatedat       time.Time `json:"updatedat"`
+	ID                  int64     `json:"id"`
+	Name                string    `json:"name"`
+	Username            string    `json:"username"`
+	Email               string    `json:"email"`
+	AccessToken         string    `json:"access_token"`
+	Password            string    `json:"password"`
+	Address             string    `json:"address"`
+	Tokenhash           string    `json:"tokenhash"`
+	Isverified          bool      `json:"isverified"`
+	MailVerfyCode       string    `json:"mail_verfy_code"`
+	MailVerfyExpire     time.Time `json:"mail_verfy_expire"`
+	PasswordVerfyCode   string    `json:"password_verfy_code"`
+	PasswordVerfyExpire time.Time `json:"password_verfy_expire"`
+	Createdat           time.Time `json:"createdat"`
+	Updatedat           time.Time `json:"updatedat"`
 }
 
 type CreateUserParams struct {
@@ -54,4 +56,9 @@ type ShowUserParams struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Address  string `json:"address"`
+}
+
+type ChangePasswordParams struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }

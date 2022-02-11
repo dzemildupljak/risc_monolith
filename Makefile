@@ -22,10 +22,10 @@ docker-compose-dev-config:
 	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.dev config
 
 docker-develop-migrateup:
-	docker run -v /home/dzemil/Projects/golang/risc_monolith/server/db/postgres/migrations:/server/db/postgres/migrations --network host migrate/migrate -path=/server/db/postgres/migrations -database "postgresql://postgres:postgres@localhost:5431/risc_monolith?sslmode=disable" up
+	docker run -v /home/dzemil/Projects/golang/risc_monolith/server/db/postgres/migrations:/server/db/postgres/migrations --network host migrate/migrate -path=/server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" up
 
 docker-develop-migratedown:
-	docker run -v /home/dzemil/Projects/golang/risc_monolith/server/db/postgres/migrations:/server/db/postgres/migrations --network host migrate/migrate -path=/server/db/postgres/migrations -database "postgresql://postgres:postgres@localhost:5431/risc_monolith?sslmode=disable" down -all
+	docker run -v /home/dzemil/Projects/golang/risc_monolith/server/db/postgres/migrations:/server/db/postgres/migrations --network host migrate/migrate -path=/server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" down -all
 
 docker-compose-prod-build:
 	docker-compose -f docker/docker-compose.yml --env-file ./.env build

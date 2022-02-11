@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
@@ -17,6 +20,13 @@ import (
 var ErrUserAlreadyExists = "User already exists with the given email"
 var ErrUserNotFound = "No user account exists with given email. Please sign in first"
 var UserCreationFailed = "Unable to create user.Please try again later"
+
+type ResPassword struct {
+	Code                string
+	Old_password        string
+	New_password        string
+	New_password_second string
+}
 
 // A AuthController belong to the interface layer.
 type AuthController struct {
@@ -37,8 +47,6 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	user := r.Context().Value(auth_usecase.UserKey{}).(domain.User)
-
-	fmt.Println(user)
 
 	hashedPass, err := ac.hashPassword(user.Password)
 	if err != nil {
@@ -63,8 +71,6 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		MailTitle: "Verify email",
 		Type:      1,
 	}
-
-	fmt.Println("verifyMail", verifyMail, user)
 
 	ac.mailInteractor.SendEmail(verifyMail, user.MailVerfyCode, user.Name)
 
@@ -144,8 +150,6 @@ func (ac *AuthController) VerifyMail(w http.ResponseWriter, r *http.Request) {
 	ac.logger.LogAccess("verifying the confimation code")
 	verificationData := r.Context().Value(VerificationDataKey{}).(VerificationData)
 
-	fmt.Println(verificationData)
-
 	err := ac.authInteractor.AuthRepository.VerifyUserMail(r.Context(), verificationData.Email)
 	if err != nil {
 		ac.logger.LogError("Failed to verify user mail try again later", err)
@@ -184,12 +188,123 @@ func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		Data:    &utils.TokenResponse{AccessToken: accessToken},
 	})
 }
+func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userID := r.Context().Value(auth_usecase.UserIDKey{}).(string)
+	usrId, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		ac.logger.LogError("code validation failed", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Generating failed. Password reset code malformed"})
+		return
+	}
+
+	user, err := ac.authInteractor.UserById(context.Background(), usrId)
+	if err != nil {
+		ac.logger.LogError("unable to get user to generate secret code for password reset", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to send password reset code. Please try again later1"})
+		return
+	}
+
+	resPassData := &ResPassword{}
+
+	err = json.NewDecoder(r.Body).Decode(resPassData)
+	if err != nil {
+		ac.logger.LogError("deserialization of user json failed", "error", err)
+		w.WriteHeader(500)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	hashOldPass, err := ac.hashPassword(resPassData.Old_password)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later2"})
+		return
+	}
+
+	fmt.Println("hashOldPass", hashOldPass)
+	fmt.Println("user.Password", user.Password)
+	fmt.Println("resPassData.New_password", resPassData.New_password)
+	fmt.Println("resPassData.New_password_second", resPassData.New_password_second)
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(resPassData.Old_password))
+	if err != nil {
+		ac.authInteractor.Logger.LogError("old password are not same")
+	}
+
+	if resPassData.New_password != resPassData.New_password_second {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later3"})
+		return
+	}
+
+	hashNewPass, err := ac.hashPassword(resPassData.New_password)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later4"})
+		return
+	}
+	err = ac.authInteractor.AuthRepository.ChangePassword(r.Context(), domain.ChangePasswordParams{Email: user.Email, Password: hashNewPass})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to reset password. Please try again later"})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(&utils.GenericResponse{
+		Status:  true,
+		Message: "Successfully reseted passowrd",
+		Data:    nil,
+	})
+
+}
+
+func (ac *AuthController) GeneratePassResetCode(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userID := r.Context().Value(auth_usecase.UserIDKey{}).(string)
+	usrId, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		ac.logger.LogError("code validation failed", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Generating failed. Password reset code malformed"})
+		return
+	}
+
+	user, err := ac.authInteractor.UserById(context.Background(), usrId)
+	if err != nil {
+		ac.logger.LogError("unable to get user to generate secret code for password reset", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Unable to send password reset code. Please try again later"})
+		return
+	}
+
+	verfyPassword := mail_usecase.Mail{
+		Reciever:  user.Email,
+		MailTitle: "Password reset code",
+		Type:      2,
+	}
+
+	//TODO geenrate password reset code and query to write password code into table
+	rand.Seed(time.Now().UnixNano())
+	min := 100000
+	max := 999999
+	user.PasswordVerfyCode = fmt.Sprint(rand.Intn(max-min+1) + min)
+	user.PasswordVerfyExpire = time.Now().Add(1 * time.Hour)
+
+	ac.mailInteractor.SendEmail(verfyPassword, user.PasswordVerfyCode, user.Name)
+
+	ac.logger.LogAccess("successfully mailed password reset code")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Please check your mail for password reset code"})
+}
 
 // Index return response which contain a listing of the resource of users.
 func (uc *AuthController) Index(w http.ResponseWriter, r *http.Request) {
-
-	uc.logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-
 	users, err := uc.authInteractor.ShowAllUsers(r.Context())
 
 	if err != nil {

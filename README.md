@@ -9,3 +9,7 @@
 
     openssl rsa -in access-private.pem -outform PEM -pubout -out access-public.pem
     openssl rsa -in refresh-private.pem -outform PEM -pubout -out refresh-public.pem
+
+# Run on local machine :
+
+    'make run' or 'make watch'

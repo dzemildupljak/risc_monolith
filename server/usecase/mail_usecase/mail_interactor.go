@@ -55,24 +55,43 @@ func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 
 	fmt.Println("Sending email")
 
-	templateData := templatedata{
-		Name: "Dzemil Dupljak",
-		URL:  host_adress + "/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
-		// URL:  "http://localhost:8080/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
-		// URL:  "localhost:8080/verify/mail?email=" + "dzemildupljak@mail.com" + "&code=" + "vaIujDpH" + "&type=" + "1",
-	}
+	templateData := templatedata{}
+	var msg []byte
 
-	msg := []byte(
-		"From: RISC Novi Pazar <" + from + ">\r\n" +
-			"To: " + to[0] + "\r\n" +
-			"Subject: RISC Novi Pazar - verify email!\r\n" +
-			"MIME: MIME-version: 1.0\r\n" +
-			"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
-			"\r\n" +
-			`<html>
-				<h1>` + user_name + `</h1>
-				<a href="` + templateData.URL + `" target="_blank">Confirm email address</a>
-			</html>`)
+	if mail.Type == 1 {
+
+		templateData = templatedata{
+			Name: user_name,
+			URL:  host_adress + "/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+		}
+		msg = []byte(
+			"From: RISC Novi Pazar <" + from + ">\r\n" +
+				"To: " + to[0] + "\r\n" +
+				"Subject: RISC Novi Pazar - " + mail.MailTitle + "!\r\n" +
+				"MIME: MIME-version: 1.0\r\n" +
+				"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
+				"\r\n" +
+				`<html>
+					<h1>` + user_name + `</h1>
+					<a href="` + templateData.URL + `" target="_blank">Confirm email address</a>
+				</html>`)
+	} else {
+		templateData = templatedata{
+			Name: user_name,
+			URL:  host_adress + "/password-reset?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+		}
+		msg = []byte(
+			"From: RISC Novi Pazar <" + from + ">\r\n" +
+				"To: " + to[0] + "\r\n" +
+				"Subject: RISC Novi Pazar - " + mail.MailTitle + "!\r\n" +
+				"MIME: MIME-version: 1.0\r\n" +
+				"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
+				"\r\n" +
+				`<html>
+					<h1>` + user_name + `</h1>
+					<p><b>` + verifyCode + `</b></p>
+				</html>`)
+	}
 
 	// Sending email.
 	go func() {

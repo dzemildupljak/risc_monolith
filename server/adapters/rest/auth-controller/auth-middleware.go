@@ -173,6 +173,13 @@ func (ac *AuthController) MiddlewareValidateVerificationData(next http.Handler) 
 			return
 		}
 
+		if vals["email"][0] == "" || vals["code"][0] == "" {
+			ac.logger.LogError("deserialization of verification data failed", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			return
+		}
+
 		verificationData := &VerificationData{
 			Email: vals["email"][0],
 			Code:  vals["code"][0],
@@ -206,10 +213,6 @@ func (ac *AuthController) MiddlewareValidateVerificationData(next http.Handler) 
 		}
 
 		if user.MailVerfyCode != verificationData.Code {
-			fmt.Println("user.MailVerfyCode != verificationData.Code",
-				user.MailVerfyCode != verificationData.Code)
-			fmt.Println("user.MailVerfyCode", user.MailVerfyCode)
-			fmt.Println("verificationData.Code", verificationData.Code)
 			ac.logger.LogError("verification code failed3", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})

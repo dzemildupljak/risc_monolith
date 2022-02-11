@@ -268,3 +268,14 @@ func (q *AuthRepository) VerifyUserMail(ctx context.Context, email string) error
 	_, err := q.Queries.db.ExecContext(ctx, verifyUserMail, email)
 	return err
 }
+
+const changePassword = `-- name: ChangePassword :exec
+UPDATE users
+SET password = $1
+WHERE email = $2
+`
+
+func (q *AuthRepository) ChangePassword(ctx context.Context, arg domain.ChangePasswordParams) error {
+	_, err := q.Queries.db.ExecContext(ctx, changePassword, arg.Password, arg.Email)
+	return err
+}
