@@ -18,6 +18,7 @@ COPY --from=builder app/access-private.pem access-private.pem
 COPY --from=builder app/access-public.pem access-public.pem
 COPY --from=builder app/refresh-private.pem refresh-private.pem
 COPY --from=builder app/refresh-public.pem refresh-public.pem
+COPY --from=builder app/swagger.json swagger.json
 
 EXPOSE 8080
 

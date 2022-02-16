@@ -7,6 +7,7 @@ import (
 	auth_rest "github.com/dzemildupljak/risc_monolith/server/adapters/rest/auth-controller"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
+	"github.com/dzemildupljak/risc_monolith/server/utils"
 )
 
 type Api struct {
@@ -26,7 +27,8 @@ func ApiImplementation(db sql.DB, l usecase.Logger) Api {
 
 	authRepo := psql.NewAuthRepository(*pgdb)
 	authInteractor := auth_usecase.NewAuthInteractor(authRepo, l)
-	authController := auth_rest.NewAuthController(*authInteractor, l)
+	authValidator := utils.NewAuthValidator(l)
+	authController := auth_rest.NewAuthController(*authInteractor, *authValidator, l)
 
 	return *newApi(*authInteractor, *authController)
 

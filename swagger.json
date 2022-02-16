@@ -1,0 +1,343 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "title": "Documentation of our awesome API.",
+    "version": "1.0.0"
+  },
+  "host": "https://serene-fortress-45917.herokuapp.com/",
+  "basePath": "/v1",
+  "paths": {
+    "/auth/forgot-password": {
+      "post": {
+        "description": "Need to send new password",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "ForgotPassword",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "x-go-name": "Code"
+                },
+                "email": {
+                  "type": "string",
+                  "x-go-name": "Email"
+                },
+                "new_password": {
+                  "type": "string",
+                  "x-go-name": "New_password"
+                },
+                "new_password_second": {
+                  "type": "string",
+                  "x-go-name": "New_password_second"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/auth/forgot-password-code": {
+      "post": {
+        "description": "Need to send new password",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "ForgotPasswordCode",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "x-go-name": "Email"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Get acces to other parts of aplication\nGet tokens for next requests",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Login",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "x-go-name": "Email"
+                },
+                "password": {
+                  "type": "string",
+                  "x-go-name": "Password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "401": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "description": "Create new user with adequate data",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Signup",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "x-go-name": "Email"
+                },
+                "name": {
+                  "type": "string",
+                  "x-go-name": "Name"
+                },
+                "password": {
+                  "type": "string",
+                  "x-go-name": "Password"
+                },
+                "username": {
+                  "type": "string",
+                  "x-go-name": "Username"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "401": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/get-password-reset-code": {
+      "get": {
+        "description": "You receive an email with a code to change the password",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "GeneratePasswordResetCode",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/password-reset": {
+      "post": {
+        "description": "Need to send old pass/code/new_password",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "ResetPassword",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "x-go-name": "Code"
+                },
+                "new_password": {
+                  "type": "string",
+                  "x-go-name": "New_password"
+                },
+                "new_password_second": {
+                  "type": "string",
+                  "x-go-name": "New_password_second"
+                },
+                "old_password": {
+                  "type": "string",
+                  "x-go-name": "Old_password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/verify/mail": {
+      "get": {
+        "description": "Recieve mail with a:href to verify email addres",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "VerifyMail",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "401": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AuthResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string",
+          "x-go-name": "AccessToken"
+        },
+        "refresh_token": {
+          "type": "string",
+          "x-go-name": "RefreshToken"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
+    },
+    "GenericResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "object",
+          "x-go-name": "Data"
+        },
+        "message": {
+          "type": "string",
+          "x-go-name": "Message"
+        },
+        "status": {
+          "type": "boolean",
+          "x-go-name": "Status"
+        }
+      },
+      "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
+    }
+  },
+  "responses": {
+    "authResponse": {
+      "description": "AuthResponse",
+      "schema": {
+        "$ref": "#/definitions/AuthResponse"
+      }
+    },
+    "genericResponse": {
+      "description": "This text will appear as description of your response body.",
+      "schema": {
+        "$ref": "#/definitions/GenericResponse"
+      }
+    },
+    "validationError": {
+      "description": "A ValidationError is an error that is used when the required input fails validation.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "FieldName": {
+            "type": "string"
+          },
+          "Message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "validationErrors": {
+      "description": "A ValidationError is an error that is used when the required input fails validation.",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "FieldName": {
+              "type": "string"
+            },
+            "Message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "basic": {
+      "type": "basic"
+    }
+  }
+}

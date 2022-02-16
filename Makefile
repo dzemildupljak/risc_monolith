@@ -79,3 +79,6 @@ generate-new-rsa-keys:
 	make generate-rsa-private-key-refresh
 	make generate-rsa-public-key-access
 	make generate-rsa-public-key-refresh
+
+swagger:
+	GO111MODULE=off swagger generate spec -o ./swagger.json --scan-models

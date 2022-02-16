@@ -4,14 +4,18 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
+	"github.com/dzemildupljak/risc_monolith/server/usecase/mail_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -215,7 +219,7 @@ func (auth *AuthInteractor) ValidateRefreshToken(tokenString string) (string, st
 func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUserParams) (string, error) {
 	usr := domain.CreateRegisterUserParams{
 		MailVerfyCode:   utils.GenerateRandomString(8),
-		MailVerfyExpire: time.Now().Add(1 * time.Hour),
+		MailVerfyExpire: time.Now().Add(720 * time.Hour),
 		Name:            u.Name,
 		Email:           u.Email,
 		Username:        u.Username,
@@ -238,8 +242,46 @@ func (auth *AuthInteractor) UserById(ctx context.Context, usrID int64) (domain.U
 	return u, err
 }
 
-func (auth *AuthInteractor) ShowAllUsers(ctx context.Context) (users []domain.User, err error) {
-	users, err = auth.AuthRepository.GetListusers(ctx)
+func (auth *AuthInteractor) ShowAllUsers(ctx context.Context) ([]domain.User, error) {
+	users, err := auth.AuthRepository.GetListusers(ctx)
+	return users, err
+}
 
-	return
+func (auth *AuthInteractor) GenerateResetPasswCode(ctx context.Context, email string) (mail_usecase.Mail, string, error) {
+	rand.Seed(time.Now().UnixNano())
+	min := 100000
+	max := 999999
+	passVerCode := fmt.Sprint(rand.Intn(max-min+1) + min)
+	passwordVerfyCode := passVerCode[:3] + "-" + passVerCode[3:]
+	passwordVerfyExpire := sql.NullTime{Time: time.Now().Local().Add(1 * time.Hour), Valid: true}
+
+	resetPassCodeUpdate := domain.GenerateResetPasswordCodeParams{
+		PasswordVerfyCode:   passwordVerfyCode,
+		PasswordVerfyExpire: passwordVerfyExpire.Time,
+		Email:               email,
+	}
+
+	err := auth.AuthRepository.GenerateResetPasswordCode(ctx, resetPassCodeUpdate)
+
+	verfyPassword := mail_usecase.Mail{
+		Reciever:  email,
+		MailTitle: "Password reset code",
+		Type:      2,
+	}
+
+	return verfyPassword, passwordVerfyCode, err
+}
+
+func (auth *AuthInteractor) UserMailVerify(ctx context.Context, email string) error {
+
+	err := auth.AuthRepository.VerifyUserMail(ctx, email)
+
+	return err
+}
+
+func (auth *AuthInteractor) UpdatePassword(ctx context.Context, usr domain.ChangePasswordParams) error {
+
+	err := auth.AuthRepository.ChangePassword(ctx, usr)
+
+	return err
 }

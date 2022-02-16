@@ -9,9 +9,9 @@ type User struct {
 	ID                  int64        `json:"id"`
 	Name                string       `json:"name"`
 	Username            string       `json:"username"`
-	Email               string       `json:"email"`
+	Email               string       `json:"email" validate:"required"`
 	AccessToken         string       `json:"access_token"`
-	Password            string       `json:"password"`
+	Password            string       `json:"password" validate:"required"`
 	Address             string       `json:"address"`
 	Tokenhash           string       `json:"tokenhash"`
 	Isverified          bool         `json:"isverified"`
@@ -48,7 +48,7 @@ type UpdateUserParams struct {
 }
 
 type ShowLoginUser struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -64,8 +64,26 @@ type ChangePasswordParams struct {
 	Email    string `json:"email"`
 }
 
+type ChangePasswordValues struct {
+	Code                string `json:"code"`
+	Old_password        string `json:"old_password"`
+	New_password        string `json:"new_password"`
+	New_password_second string `json:"new_password_second"`
+}
+
 type GenerateResetPasswordCodeParams struct {
 	PasswordVerfyCode   string    `json:"password_verfy_code"`
 	PasswordVerfyExpire time.Time `json:"password_verfy_expire"`
 	Email               string    `json:"email"`
+}
+
+type ForgotPasswordValues struct {
+	Code                string `json:"code"`
+	Email               string `json:"email"`
+	New_password        string `json:"new_password"`
+	New_password_second string `json:"new_password_second"`
+}
+
+type UserEmail struct {
+	Email string `json:"email"`
 }

@@ -164,7 +164,7 @@ func (q *AuthRepository) GetOneUser(ctx context.Context, id int64) (domain.User,
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, createdat, updatedat FROM users
+SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -183,21 +183,23 @@ func (ac *AuthRepository) GetUserByEmail(ctx context.Context, email string) (dom
 		&i.Isverified,
 		&i.MailVerfyCode,
 		&i.MailVerfyExpire,
+		&i.PasswordVerfyCode,
+		&i.PasswordVerfyExpire,
 		&i.Createdat,
 		&i.Updatedat,
 	)
 	return i, err
 }
 
-const getUserByUsernameAuth = `-- name: GetUserByUsername :one
-SELECT username,password FROM users
-WHERE username = $1 LIMIT 1
+const getLogedUserByEmaiAuth = `-- name: GetLogedUserByEmai :one
+SELECT email,password FROM users
+WHERE email = $1 LIMIT 1
 `
 
-func (q *AuthRepository) GetUserByUsername(ctx context.Context, username string) (domain.ShowLoginUser, error) {
-	row := q.Queries.db.QueryRowContext(ctx, getUserByUsernameAuth, username)
+func (q *AuthRepository) GetLogedUserByEmai(ctx context.Context, username string) (domain.ShowLoginUser, error) {
+	row := q.Queries.db.QueryRowContext(ctx, getLogedUserByEmaiAuth, username)
 	var i domain.ShowLoginUser
-	err := row.Scan(&i.Username, &i.Password)
+	err := row.Scan(&i.Email, &i.Password)
 	return i, err
 }
 

@@ -12,7 +12,7 @@ type AuthRepository interface {
 	GetListusers(ctx context.Context) ([]domain.User, error)
 	UpdateUser(ctx context.Context, arg domain.UpdateUserParams) (domain.User, error)
 	CreateRegisterUser(ctx context.Context, arg domain.CreateRegisterUserParams) error
-	GetUserByUsername(ctx context.Context, username string) (domain.ShowLoginUser, error)
+	GetLogedUserByEmai(ctx context.Context, username string) (domain.ShowLoginUser, error)
 	GetUserByEmail(ctx context.Context, email string) (domain.User, error)
 	GetUserById(ctx context.Context, id int64) (domain.User, error)
 	VerifyUserMail(ctx context.Context, email string) error

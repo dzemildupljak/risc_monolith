@@ -31,13 +31,19 @@ func (ac *AuthController) MiddlewareValidateUser(next http.Handler) http.Handler
 
 		w.Header().Set("Content-Type", "application/json")
 
+		fmt.Println(r.URL.Path)
+
 		user := &domain.User{}
 
 		err := json.NewDecoder(r.Body).Decode(user)
 		if err != nil {
 			ac.logger.LogError("deserialization of user json failed", "error", err)
-			w.WriteHeader(500)
-			json.NewEncoder(w).Encode(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Invalid credentials deserialization",
+				})
 			return
 		}
 
@@ -45,8 +51,12 @@ func (ac *AuthController) MiddlewareValidateUser(next http.Handler) http.Handler
 
 		if err != nil {
 			ac.logger.LogError("inalid email address", "error", err)
-			w.WriteHeader(500)
-			json.NewEncoder(w).Encode(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Invalid credentials",
+				})
 			return
 		}
 
@@ -72,7 +82,11 @@ func (ac *AuthController) MiddlewareValidateAccessToken(next http.Handler) http.
 		if err != nil {
 			ac.logger.LogError("token not provided or malformed")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 
 			return
 		}
@@ -81,7 +95,11 @@ func (ac *AuthController) MiddlewareValidateAccessToken(next http.Handler) http.
 		if err != nil {
 			ac.logger.LogError("token validation failed1", "error", err)
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 
 			return
 		}
@@ -105,8 +123,12 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 		token, err := extractToken(r)
 		if err != nil {
 			ac.logger.LogError("token not provided or malformed")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 
 			return
 		}
@@ -115,8 +137,12 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 		userID, customKey, err := ac.authInteractor.ValidateRefreshToken(token)
 		if err != nil {
 			ac.logger.LogError("token validation failed2", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 
 			return
 		}
@@ -125,26 +151,39 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 		usrId, err := strconv.ParseInt(userID, 10, 64)
 		if err != nil {
 			ac.logger.LogError("token validation failed3", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
-
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 			return
 		}
 		user, err := ac.authInteractor.UserById(context.Background(), usrId)
 		if err != nil {
 			ac.logger.LogError("invalid token: wrong userID while parsing", err)
-			w.WriteHeader(http.StatusBadRequest)
-			// data.ToJSON(&GenericError{Error: "invalid token: authentication failed"}, w)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 
 			return
 		}
 
-		actualCustomKey := ac.authInteractor.GenerateCustomKey(strconv.FormatInt(user.ID, 10), user.Tokenhash)
+		actualCustomKey := ac.authInteractor.GenerateCustomKey(
+			strconv.FormatInt(user.ID, 10),
+			user.Tokenhash)
+
 		if customKey != actualCustomKey {
 			ac.logger.LogAccess("wrong token: authetincation failed")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: "Authentication failed. Token not provided or malformed"})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
 
 			return
 		}
@@ -167,15 +206,21 @@ func (ac *AuthController) MiddlewareValidateMailVerificationData(next http.Handl
 		c, err := strconv.ParseInt(vals["type"][0], 10, 64)
 		if err != nil {
 			ac.logger.LogError("deserialization of verification code failed", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Failed to verify data try again later"})
 			return
 		}
 
 		if vals["email"][0] == "" || vals["code"][0] == "" {
 			ac.logger.LogError("deserialization of verification data failed", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Failed to verify data try again later"})
 			return
 		}
 
@@ -185,20 +230,24 @@ func (ac *AuthController) MiddlewareValidateMailVerificationData(next http.Handl
 			Type:  c,
 		}
 
-		ac.logger.LogAccess("========== verificationData ==========", verificationData)
-
 		user, err := ac.authInteractor.UserByEmail(r.Context(), verificationData.Email)
 		if err != nil {
 			ac.logger.LogError("verification code failed", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Failed to verify data try again later"})
 			return
 		}
 
 		if verificationData.Type != 1 {
 			ac.logger.LogError("verification code failed1", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Failed to verify mail try again later"})
 			return
 		}
 
@@ -206,15 +255,21 @@ func (ac *AuthController) MiddlewareValidateMailVerificationData(next http.Handl
 
 		if !validateExTime {
 			ac.logger.LogError("verification code failed2")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Failed to verify data try again later"})
 			return
 		}
 
 		if user.MailVerfyCode != verificationData.Code {
 			ac.logger.LogError("verification code failed3", "error", err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&utils.GenericResponse{Status: false, Message: err.Error()})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Failed to verify data try again later"})
 			return
 		}
 
