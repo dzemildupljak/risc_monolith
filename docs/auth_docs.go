@@ -126,3 +126,9 @@ type forgotPasswordCodeRequest struct {
 // responses:
 //   200: genericResponse
 //   500: genericResponse
+
+// swagger:route GET /oauth/google/login OAuth OauthGoogleLogin
+// Need to send request for google account check
+// responses:
+//   200: genericResponse
+//   401: genericResponse

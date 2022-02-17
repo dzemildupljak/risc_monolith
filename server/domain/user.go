@@ -15,6 +15,7 @@ type User struct {
 	Address             string       `json:"address"`
 	Tokenhash           string       `json:"tokenhash"`
 	Isverified          bool         `json:"isverified"`
+	OauthID             []string     `json:"oauth_id"`
 	MailVerfyCode       string       `json:"mail_verfy_code"`
 	MailVerfyExpire     sql.NullTime `json:"mail_verfy_expire"`
 	PasswordVerfyCode   string       `json:"password_verfy_code"`
@@ -38,6 +39,13 @@ type CreateRegisterUserParams struct {
 	Tokenhash       string    `json:"tokenhash"`
 	MailVerfyCode   string    `json:"mail_verfy_code"`
 	MailVerfyExpire time.Time `json:"mail_verfy_expire"`
+}
+
+type CreateOauthUserParams struct {
+	Email      string   `json:"email"`
+	Tokenhash  string   `json:"tokenhash"`
+	Isverified bool     `json:"isverified"`
+	OauthID    []string `json:"oauth_id"`
 }
 
 type UpdateUserParams struct {

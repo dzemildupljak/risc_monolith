@@ -14,7 +14,7 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "https://serene-fortress-45917.herokuapp.com/",
+  "host": "https://serene-fortress-45917.herokuapp.com",
   "basePath": "/v1",
   "paths": {
     "/auth/forgot-password": {
@@ -185,6 +185,23 @@
             "$ref": "#/responses/genericResponse"
           },
           "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/oauth/google/login": {
+      "get": {
+        "description": "Need to send request for google account check",
+        "tags": [
+          "OAuth"
+        ],
+        "operationId": "OauthGoogleLogin",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "401": {
             "$ref": "#/responses/genericResponse"
           }
         }

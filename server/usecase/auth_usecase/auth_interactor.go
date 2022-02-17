@@ -232,6 +232,12 @@ func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUse
 	return usr.MailVerfyCode, err
 }
 
+func (auth *AuthInteractor) RegisterOauthUser(ctx context.Context, u domain.CreateOauthUserParams) (domain.User, error) {
+	newUsr, err := auth.AuthRepository.CreateOauthUser(ctx, u)
+
+	return newUsr, err
+}
+
 func (auth *AuthInteractor) UserByEmail(ctx context.Context, email string) (domain.User, error) {
 	u, err := auth.AuthRepository.GetUserByEmail(ctx, email)
 	return u, err

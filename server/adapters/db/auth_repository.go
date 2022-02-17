@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
+	"github.com/lib/pq"
 )
 
 type AuthRepository struct {
@@ -87,6 +88,44 @@ func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.Crea
 		&i.Updatedat,
 	)
 	return err
+}
+
+const createOauthUser = `-- name: CreateOauthUser :one
+INSERT INTO users (
+	email, tokenhash, isverified, oauth_id, updatedat, createdat
+) VALUES (
+	$1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+)
+RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, oauth_id, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat`
+
+func (q *AuthRepository) CreateOauthUser(ctx context.Context, arg domain.CreateOauthUserParams) (domain.User, error) {
+	row := q.Queries.db.QueryRowContext(ctx,
+		createOauthUser,
+		arg.Email,
+		arg.Tokenhash,
+		arg.Isverified,
+		pq.Array(arg.OauthID))
+
+	var i domain.User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Email,
+		&i.AccessToken,
+		&i.Password,
+		&i.Address,
+		&i.Tokenhash,
+		&i.Isverified,
+		pq.Array(&i.OauthID),
+		&i.MailVerfyCode,
+		&i.MailVerfyExpire,
+		&i.PasswordVerfyCode,
+		&i.PasswordVerfyExpire,
+		&i.Createdat,
+		&i.Updatedat,
+	)
+	return i, err
 }
 
 const deleteUserById = `-- name: DeleteUserById :exec

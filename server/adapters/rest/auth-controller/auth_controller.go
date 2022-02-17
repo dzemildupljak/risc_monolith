@@ -663,5 +663,4 @@ func (ac *AuthController) ForgotPasswordCode(w http.ResponseWriter, r *http.Requ
 			Status:  false,
 			Message: "Please check your mail for code",
 		})
-
 }

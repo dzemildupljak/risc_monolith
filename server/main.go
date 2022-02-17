@@ -43,29 +43,43 @@ func main() {
 
 	// Auth rounting
 	authR := rv1.PathPrefix("/auth").Subrouter()
+	// /v1/auth/signup
 	authR.HandleFunc("/signup", api.authController.SignUp).Methods("POST")
+	// /v1/auth/login
 	authR.HandleFunc("/login", api.authController.Login).Methods("POST") // VALIDATE
+	// /v1/auth/forgot-password-code
 	authR.HandleFunc("/forgot-password-code", api.authController.ForgotPasswordCode).Methods("POST")
+	// /v1/auth/forgot-password
 	authR.HandleFunc("/forgot-password", api.authController.ForgotPassword).Methods("POST")
-	// authR.Use(api.authController.MiddlewareValidateUser)
+
+	googleR := rv1.PathPrefix("/oauth").Subrouter()
+	// /v1/oauth/google/login
+	googleR.HandleFunc("/google/login", api.authController.OauthGoogleLogin).Methods("GET")
+	// /v1/oauth/google/callback
+	googleR.HandleFunc("/google/callback", api.authController.OauthGoogleCallback)
 
 	verfyR := rv1.PathPrefix("/verify").Subrouter()
+	// /v1/verify/mail
 	verfyR.HandleFunc("/mail", api.authController.VerifyMail).Methods("GET")
 	verfyR.Use(api.authController.MiddlewareValidateMailVerificationData)
 
 	// Refresh token
 	refR := rv1.PathPrefix("/refresh-token").Subrouter()
+	// /v1/refresh-token
 	refR.HandleFunc("", api.authController.RefreshToken).Methods("GET")
 	refR.Use(api.authController.MiddlewareValidateRefreshToken)
 
 	// Reset password
 	getR := rv1.PathPrefix("").Subrouter()
+	// /v1/get-password-reset-code
 	getR.HandleFunc("/get-password-reset-code", api.authController.GeneratePassResetCode).Methods("GET")
+	// /v1/password-reset
 	getR.HandleFunc("/password-reset", api.authController.PasswordResetCode).Methods("POST")
 	getR.Use(api.authController.MiddlewareValidateAccessToken)
 
 	// 	// User routing
 	usrR := rv1.PathPrefix("/user").Subrouter()
+	// /v1/user/
 	usrR.HandleFunc("", api.authController.Index).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
