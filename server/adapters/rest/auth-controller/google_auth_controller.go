@@ -169,7 +169,7 @@ func (ac *AuthController) OauthGoogleCallback(w http.ResponseWriter, r *http.Req
 	http.SetCookie(w, cookie)
 
 	http.Redirect(w, r,
-		"http://localhost:3000/?token="+refreshToken,
+		"http://localhost:3000/users?token="+refreshToken,
 		http.StatusTemporaryRedirect)
 }
 

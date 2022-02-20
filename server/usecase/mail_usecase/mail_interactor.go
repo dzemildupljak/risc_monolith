@@ -62,7 +62,7 @@ func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 
 		templateData = templatedata{
 			Name: user_name,
-			URL:  host_adress + "v1/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+			URL:  host_adress + "/v1/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
 		}
 		msg = []byte(
 			"From: RISC Novi Pazar <" + from + ">\r\n" +

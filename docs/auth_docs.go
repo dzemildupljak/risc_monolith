@@ -132,3 +132,21 @@ type forgotPasswordCodeRequest struct {
 // responses:
 //   200: genericResponse
 //   401: genericResponse
+
+
+/////////////////////////////////////////////////
+
+// swagger:parameters SetNewPassword
+type setPasswordRequest struct {
+	// in:body
+	Body struct {
+		New_password        string `json:"new_password"`
+		New_password_second string `json:"new_password_second"`
+	}
+}
+
+// swagger:route POST /set-password Auth SetNewPassword
+// Need to send old pass/code/new_password
+// responses:
+//   200: genericResponse
+//   500: genericResponse

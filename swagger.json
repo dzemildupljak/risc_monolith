@@ -251,6 +251,42 @@
         }
       }
     },
+    "/set-password": {
+      "post": {
+        "description": "Need to send old pass/code/new_password",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "SetNewPassword",
+        "parameters": [
+          {
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "new_password": {
+                  "type": "string",
+                  "x-go-name": "New_password"
+                },
+                "new_password_second": {
+                  "type": "string",
+                  "x-go-name": "New_password_second"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
     "/verify/mail": {
       "get": {
         "description": "Recieve mail with a:href to verify email addres",

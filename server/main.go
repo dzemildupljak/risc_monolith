@@ -75,6 +75,8 @@ func main() {
 	getR.HandleFunc("/get-password-reset-code", api.authController.GeneratePassResetCode).Methods("GET")
 	// /v1/password-reset
 	getR.HandleFunc("/password-reset", api.authController.PasswordResetCode).Methods("POST")
+	// /v1/set-password
+	getR.HandleFunc("/set-password", api.authController.SetNewPassword).Methods("POST")
 	getR.Use(api.authController.MiddlewareValidateAccessToken)
 
 	// 	// User routing

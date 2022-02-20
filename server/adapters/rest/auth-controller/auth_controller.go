@@ -25,6 +25,11 @@ type ResPassword struct {
 	New_password_second string
 }
 
+type SetPasswordValues struct {
+	New_password        string `json:"new_password"`
+	New_password_second string `json:"new_password_second"`
+}
+
 // A AuthController belong to the interface layer.
 type AuthController struct {
 	authInteractor auth_usecase.AuthInteractor
@@ -127,6 +132,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	// Decode/parse struct from request
 	logedUser := &domain.ShowLoginUser{}
 	err := json.NewDecoder(r.Body).Decode(logedUser)
 	if err != nil {
@@ -138,6 +144,8 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 			Message: "Invalid credentials"})
 		return
 	}
+
+	// Validate login values ex. email/password != ""
 	errRes, err := ac.authValidator.ValidateLoginValues(*logedUser)
 	if err != nil {
 
@@ -150,6 +158,8 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 			Message: "Invalid credentials"})
 		return
 	}
+
+	// Get user by email from interactora-repository
 	user, err := ac.authInteractor.UserByEmail(context.Background(), logedUser.Email)
 	if err != nil {
 		ac.logger.LogError("error fetching the user", "error", err)
@@ -162,6 +172,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 			})
 		return
 	}
+	// Check if given user email is verified
 	if !user.Isverified {
 		ac.logger.LogError("unverified user")
 
@@ -174,6 +185,8 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	// Check if given password is same is password in db(hashed)
 	if valid := ac.authInteractor.Authenticate(
 		&domain.User{
 			Email:    logedUser.Email,
@@ -191,6 +204,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate access jwt token with payload and signature
 	accessToken, err := ac.authInteractor.GenerateAccessToken(&user)
 	if err != nil {
 		ac.logger.LogError("unable to generate access token", "error", err)
@@ -204,6 +218,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate refresh jwt token with payload and signature
 	refreshToken, err := ac.authInteractor.GenerateRefreshToken(&user)
 	if err != nil {
 		ac.logger.LogError("unable to generate refresh token", "error", err)
@@ -413,7 +428,7 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 
 	json.NewEncoder(w).Encode(&utils.GenericResponse{
 		Status:  true,
-		Message: "Successfully reseted passowrd",
+		Message: "Successfully reseted password",
 		Data:    nil,
 	})
 }
@@ -468,10 +483,112 @@ func (ac *AuthController) GeneratePassResetCode(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(
 		&utils.GenericResponse{
-			Status:  false,
+			Status:  true,
 			Message: "Please check your mail for password reset code",
 		})
 }
+
+func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userID := r.Context().Value(auth_usecase.UserIDKey{}).(string)
+	usrId, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		ac.logger.LogError("code validation failed", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Generating failed. Password malformed",
+			})
+		return
+	}
+	settPassData := &SetPasswordValues{}
+
+	err = json.NewDecoder(r.Body).Decode(settPassData)
+	if err != nil {
+		ac.logger.LogError("deserialization of user json failed", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to reset password. Please try again later",
+			})
+		return
+	}
+
+
+	if settPassData.New_password != settPassData.New_password_second {
+		ac.logger.LogError(
+			"unable to get user to set password different pass values", "error", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to set new password. Please try again later",
+			})
+		return
+	}
+
+
+	user, err := ac.authInteractor.UserById(context.Background(), usrId)
+	if err != nil {
+		ac.logger.LogError(
+			"unable to get user to generate code for password reset", "error", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to set new password. Please try again later",
+			})
+		return
+	}
+	hashNewPass, err := ac.hashPassword(settPassData.New_password)
+	if err != nil {
+		ac.authInteractor.Logger.LogError(
+			"hasing new password failed - reset password")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to reset password. Please try again later",
+			})
+		return
+	}
+
+	err = ac.authInteractor.UpdatePassword(
+		r.Context(), 
+		domain.ChangePasswordParams{
+			Email: user.Email, 
+			Password: hashNewPass,
+		},
+	)
+	if err != nil {
+		ac.logger.LogError(
+			"unable to set user to new password in db", "error", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to set new password. Please try again later",
+			})
+		return
+	}	 
+
+	ac.logger.LogAccess("successfully setted new password")
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(
+		&utils.GenericResponse{
+			Status:  true,
+			Message: "successfully set new password",
+		})
+	
+}
+
 
 // Index return response which contain a listing of the resource of users.
 func (uc *AuthController) Index(w http.ResponseWriter, r *http.Request) {
@@ -592,7 +709,7 @@ func (ac *AuthController) ForgotPassword(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(&utils.GenericResponse{
 		Status:  true,
-		Message: "Successfully reseted passowrd",
+		Message: "Successfully reseted password",
 		Data:    nil,
 	})
 }
