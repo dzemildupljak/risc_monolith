@@ -75,7 +75,9 @@ func (auth *AuthInteractor) GenerateAccessToken(user *domain.User) (string, erro
 		userID,
 		tokenType,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute * time.Duration(auth.Config.JwtExpiration)).Unix(),
+			ExpiresAt: time.Now().Add(
+				time.Minute * time.Duration(auth.Config.JwtExpiration),
+				).Unix(),
 			Issuer:    "polaris.auth.service",
 		},
 	}
@@ -102,7 +104,10 @@ func (auth *AuthInteractor) GenerateAccessToken(user *domain.User) (string, erro
 // returns the userId present in the token payload
 func (auth *AuthInteractor) ValidateAccessToken(tokenString string) (string, error) {
 
-	token, err := jwt.ParseWithClaims(tokenString, &AccessTokenCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString, 
+		&AccessTokenCustomClaims{}, 
+		func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			auth.Logger.LogError("Unexpected signing method in auth token")
 			return nil, errors.New("unexpected signing method in auth token")
@@ -156,7 +161,9 @@ func (auth *AuthInteractor) GenerateRefreshToken(user *domain.User) (string, err
 		cusKey,
 		tokenType,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(24 * time.Hour * time.Duration(auth.Config.JwtRefreshExpiration)).Unix(),
+			ExpiresAt: time.Now().Add(
+				24 * time.Hour * time.Duration(auth.Config.JwtRefreshExpiration),
+				).Unix(),
 			Issuer:    "polaris.auth.service",
 		},
 	}
@@ -180,9 +187,13 @@ func (auth *AuthInteractor) GenerateRefreshToken(user *domain.User) (string, err
 
 // ValidateRefreshToken parses and validates the given refresh token
 // returns the userId and customkey present in the token payload
-func (auth *AuthInteractor) ValidateRefreshToken(tokenString string) (string, string, error) {
+func (auth *AuthInteractor) ValidateRefreshToken(
+			tokenString string) (string, string, error) {
 
-	token, err := jwt.ParseWithClaims(tokenString, &RefreshTokenCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(
+		tokenString, 
+		&RefreshTokenCustomClaims{}, 
+		func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			auth.Logger.LogError("unexpected signing method in auth token")
 			return nil, errors.New("unexpected signing method in auth token")
@@ -216,7 +227,10 @@ func (auth *AuthInteractor) ValidateRefreshToken(tokenString string) (string, st
 	return claims.UserID, claims.CustomKey, nil
 }
 
-func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUserParams) (string, error) {
+func (auth *AuthInteractor) RegisterUser(
+			ctx context.Context, 
+			u domain.CreateUserParams) (string, error) {
+
 	usr := domain.CreateRegisterUserParams{
 		MailVerfyCode:   utils.GenerateRandomString(8),
 		MailVerfyExpire: time.Now().Add(720 * time.Hour),
@@ -232,13 +246,18 @@ func (auth *AuthInteractor) RegisterUser(ctx context.Context, u domain.CreateUse
 	return usr.MailVerfyCode, err
 }
 
-func (auth *AuthInteractor) RegisterOauthUser(ctx context.Context, u domain.CreateOauthUserParams) (domain.User, error) {
+func (auth *AuthInteractor) RegisterOauthUser(
+			ctx context.Context, 
+			u domain.CreateOauthUserParams) (domain.User, error) {
+				
 	newUsr, err := auth.AuthRepository.CreateOauthUser(ctx, u)
 
 	return newUsr, err
 }
 
-func (auth *AuthInteractor) UserByEmail(ctx context.Context, email string) (domain.User, error) {
+func (auth *AuthInteractor) UserByEmail(
+			ctx context.Context, email string) (domain.User, error) {
+
 	u, err := auth.AuthRepository.GetUserByEmail(ctx, email)
 	return u, err
 }
@@ -253,13 +272,18 @@ func (auth *AuthInteractor) ShowAllUsers(ctx context.Context) ([]domain.User, er
 	return users, err
 }
 
-func (auth *AuthInteractor) GenerateResetPasswCode(ctx context.Context, email string) (mail_usecase.Mail, string, error) {
+func (auth *AuthInteractor) GenerateResetPasswCode(
+			ctx context.Context, email string) (mail_usecase.Mail, string, error) {
+
 	rand.Seed(time.Now().UnixNano())
 	min := 100000
 	max := 999999
 	passVerCode := fmt.Sprint(rand.Intn(max-min+1) + min)
 	passwordVerfyCode := passVerCode[:3] + "-" + passVerCode[3:]
-	passwordVerfyExpire := sql.NullTime{Time: time.Now().Local().Add(1 * time.Hour), Valid: true}
+	passwordVerfyExpire := sql.NullTime{
+		Time: time.Now().Local().Add(1 * time.Hour), 
+		Valid: true,
+	}
 
 	resetPassCodeUpdate := domain.GenerateResetPasswordCodeParams{
 		PasswordVerfyCode:   passwordVerfyCode,
@@ -285,7 +309,8 @@ func (auth *AuthInteractor) UserMailVerify(ctx context.Context, email string) er
 	return err
 }
 
-func (auth *AuthInteractor) UpdatePassword(ctx context.Context, usr domain.ChangePasswordParams) error {
+func (auth *AuthInteractor) UpdatePassword(
+			ctx context.Context, usr domain.ChangePasswordParams) error {
 
 	err := auth.AuthRepository.ChangePassword(ctx, usr)
 

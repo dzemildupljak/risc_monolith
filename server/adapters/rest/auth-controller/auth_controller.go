@@ -463,7 +463,10 @@ func (ac *AuthController) GeneratePassResetCode(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	verfyPassMail, verfyPassCode, err := ac.authInteractor.GenerateResetPasswCode(r.Context(), user.Email)
+	verfyPassMail, verfyPassCode, err := ac.authInteractor.GenerateResetPasswCode(
+		r.Context(), 
+		user.Email,
+	)
 
 	if err != nil {
 		ac.logger.LogError("unable to get user to reset password", "error", err)
@@ -756,7 +759,10 @@ func (ac *AuthController) ForgotPasswordCode(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	verfyPassMail, verfyPassCode, err := ac.authInteractor.GenerateResetPasswCode(r.Context(), user.Email)
+	verfyPassMail, verfyPassCode, err := ac.authInteractor.GenerateResetPasswCode(
+		r.Context(), 
+		user.Email,
+	)
 
 	if err != nil {
 		ac.logger.LogError("unable to get user to reset password", "error", err)
