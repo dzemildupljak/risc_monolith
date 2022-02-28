@@ -18,47 +18,13 @@ func NewAuthRepository(q Queries) *AuthRepository {
 
 }
 
-const createUser = `-- name: CreateUser :one
-INSERT INTO users (
-  name, username, email, password
-) VALUES (
-  $1, $2, $3, $4
-)
-RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat
-`
-
-func (q *AuthRepository) CreateUser(ctx context.Context, arg domain.CreateUserParams) (domain.User, error) {
-	row := q.Queries.db.QueryRowContext(ctx, createUser,
-		arg.Name,
-		arg.Username,
-		arg.Email,
-		arg.Password,
-	)
-	var i domain.User
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Username,
-		&i.Email,
-		&i.AccessToken,
-		&i.Password,
-		&i.Address,
-		&i.Tokenhash,
-		&i.Isverified,
-		&i.Createdat,
-		&i.Updatedat,
-	)
-
-	return i, err
-}
-
 const createRegisterUser = `-- name: CreateRegisterUser :one
 INSERT INTO users (
-  name, email, username, password, tokenhash, mail_verfy_code, mail_verfy_expire, updatedat, createdat
+  name, email, username, role, password, tokenhash, mail_verfy_code, mail_verfy_expire, updatedat, createdat
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+  $1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
-RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, createdat, updatedat
+RETURNING id, name, username, role, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, createdat, updatedat
 `
 
 func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.CreateRegisterUserParams) error {
@@ -66,6 +32,7 @@ func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.Crea
 		arg.Name,
 		arg.Email,
 		arg.Username,
+		arg.Role,
 		arg.Password,
 		arg.Tokenhash,
 		arg.MailVerfyCode,
@@ -76,6 +43,7 @@ func (q *AuthRepository) CreateRegisterUser(ctx context.Context, arg domain.Crea
 		&i.ID,
 		&i.Name,
 		&i.Username,
+		&i.Role,
 		&i.Email,
 		&i.AccessToken,
 		&i.Password,
@@ -96,7 +64,7 @@ INSERT INTO users (
 ) VALUES (
 	$1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 )
-RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, oauth_id, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat`
+RETURNING id, name, username, role, email, access_token, password, address, tokenhash, isverified, oauth_id, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat`
 
 func (q *AuthRepository) CreateOauthUser(ctx context.Context, arg domain.CreateOauthUserParams) (domain.User, error) {
 	row := q.Queries.db.QueryRowContext(ctx,
@@ -111,6 +79,7 @@ func (q *AuthRepository) CreateOauthUser(ctx context.Context, arg domain.CreateO
 		&i.ID,
 		&i.Name,
 		&i.Username,
+		&i.Role,
 		&i.Email,
 		&i.AccessToken,
 		&i.Password,
@@ -139,12 +108,48 @@ func (q *AuthRepository) DeleteUserById(ctx context.Context, id int64) error {
 }
 
 const getListusers = `-- name: GetListusers :many
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat FROM users
+SELECT id, name, username, role, email, address, isverified FROM users
 ORDER BY name
 `
 
-func (q *AuthRepository) GetListusers(ctx context.Context) ([]domain.User, error) {
+func (q *AuthRepository) GetListusers(ctx context.Context) ([]domain.ShowUserParams, error) {
 	rows, err := q.Queries.db.QueryContext(ctx, getListusers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []domain.ShowUserParams
+	for rows.Next() {
+		var i domain.ShowUserParams
+		if err := rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.Username,
+			&i.Role,
+			&i.Email,
+			&i.Address,
+			&i.Isverified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCompleteListusers = `-- name: GetListusers :many
+SELECT id, name, username, role, email, access_token, password, address, tokenhash, isverified, createdat, updatedat FROM users
+ORDER BY name
+`
+
+func (q *AuthRepository) GetCompleteListusers(ctx context.Context) ([]domain.User, error) {
+	rows, err := q.Queries.db.QueryContext(ctx, getCompleteListusers)
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +161,7 @@ func (q *AuthRepository) GetListusers(ctx context.Context) ([]domain.User, error
 			&i.ID,
 			&i.Name,
 			&i.Username,
+			&i.Role,
 			&i.Email,
 			&i.AccessToken,
 			&i.Password,
@@ -179,7 +185,7 @@ func (q *AuthRepository) GetListusers(ctx context.Context) ([]domain.User, error
 }
 
 const getOneUser = `-- name: GetOneUser :one
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat FROM users
+SELECT id, name, username, role, email, access_token, password, address, tokenhash, isverified, createdat, updatedat FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -190,6 +196,7 @@ func (q *AuthRepository) GetOneUser(ctx context.Context, id int64) (domain.User,
 		&i.ID,
 		&i.Name,
 		&i.Username,
+		&i.Role,
 		&i.Email,
 		&i.AccessToken,
 		&i.Password,
@@ -203,7 +210,7 @@ func (q *AuthRepository) GetOneUser(ctx context.Context, id int64) (domain.User,
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat FROM users
+SELECT id, name, username, role, email,access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -214,6 +221,7 @@ func (ac *AuthRepository) GetUserByEmail(ctx context.Context, email string) (dom
 		&i.ID,
 		&i.Name,
 		&i.Username,
+		&i.Role,
 		&i.Email,
 		&i.AccessToken,
 		&i.Password,
@@ -248,7 +256,7 @@ SET name = $1,
     username = $2, 
     email = $3, 
     password = $4
-RETURNING id, name, username, email, access_token, password, address, tokenhash, isverified, createdat, updatedat
+RETURNING id, name, username, role, email, access_token, password, address, tokenhash, isverified, createdat, updatedat
 `
 
 func (q *AuthRepository) UpdateUser(ctx context.Context, arg domain.UpdateUserParams) (domain.User, error) {
@@ -263,6 +271,7 @@ func (q *AuthRepository) UpdateUser(ctx context.Context, arg domain.UpdateUserPa
 		&i.ID,
 		&i.Name,
 		&i.Username,
+		&i.Role,
 		&i.Email,
 		&i.AccessToken,
 		&i.Password,
@@ -276,7 +285,7 @@ func (q *AuthRepository) UpdateUser(ctx context.Context, arg domain.UpdateUserPa
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, name, username, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat FROM users
+SELECT id, name, username, role, email, access_token, password, address, tokenhash, isverified, mail_verfy_code, mail_verfy_expire, password_verfy_code, password_verfy_expire, createdat, updatedat FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -287,6 +296,7 @@ func (q *AuthRepository) GetUserById(ctx context.Context, id int64) (domain.User
 		&i.ID,
 		&i.Name,
 		&i.Username,
+		&i.Role,
 		&i.Email,
 		&i.AccessToken,
 		&i.Password,

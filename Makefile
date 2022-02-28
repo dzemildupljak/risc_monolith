@@ -58,10 +58,10 @@ create-migration:
 	@read -p "Enter migration name: " migration_name; \
 	migrate create -ext sql -dir server/db/postgres/migrations -seq $$migration_name
 migrate-up:
-	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose up
+	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" -verbose up
 
 migrate-down:
-	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose down
+	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" -verbose down
 
 
 

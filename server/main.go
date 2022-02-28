@@ -46,18 +46,20 @@ func main() {
 	// /v1/auth/signup
 	authR.HandleFunc("/signup", api.authController.SignUp).Methods("POST")
 	// /v1/auth/login
-	authR.HandleFunc("/login", api.authController.Login).Methods("POST") // VALIDATE
+	authR.HandleFunc("/login", api.authController.Login).Methods("POST")	
 	// /v1/auth/forgot-password-code
 	authR.HandleFunc("/forgot-password-code", api.authController.ForgotPasswordCode).Methods("POST")
 	// /v1/auth/forgot-password
 	authR.HandleFunc("/forgot-password", api.authController.ForgotPassword).Methods("POST")
 
+	// Google 0Auth2
 	googleR := rv1.PathPrefix("/oauth").Subrouter()
 	// /v1/oauth/google/login
 	googleR.HandleFunc("/google/login", api.authController.OauthGoogleLogin).Methods("GET")
 	// /v1/oauth/google/callback
 	googleR.HandleFunc("/google/callback", api.authController.OauthGoogleCallback)
 
+	// Varify mail
 	verfyR := rv1.PathPrefix("/verify").Subrouter()
 	// /v1/verify/mail
 	verfyR.HandleFunc("/mail", api.authController.VerifyMail).Methods("GET")
@@ -82,8 +84,15 @@ func main() {
 	// 	// User routing
 	usrR := rv1.PathPrefix("/user").Subrouter()
 	// /v1/user/
-	usrR.HandleFunc("", api.authController.Index).Methods("GET")
+	usrR.HandleFunc("", api.authController.UserIndex).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
+
+	// Admin routing
+	adminR := rv1.PathPrefix("/admin").Subrouter()
+	// /v1/user/
+	adminR.HandleFunc("", api.authController.Index).Methods("GET")
+	adminR.Use(api.authController.MiddlewareValidateAdminAccessToken)
+
 
 	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})

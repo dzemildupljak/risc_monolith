@@ -91,7 +91,7 @@ func (ac *AuthController) MiddlewareValidateAccessToken(next http.Handler) http.
 			return
 		}
 
-		userID, err := ac.authInteractor.ValidateAccessToken(token)
+		userID, _, err := ac.authInteractor.ValidateAccessToken(token)
 		if err != nil {
 			ac.logger.LogError("token validation failed1", "error", err)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -103,7 +103,63 @@ func (ac *AuthController) MiddlewareValidateAccessToken(next http.Handler) http.
 
 			return
 		}
-		ac.logger.LogAccess("access token validated")
+		ac.logger.LogAccess("access token validated", userID)
+
+		ctx := context.WithValue(r.Context(), auth_usecase.UserIDKey{}, userID)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// MiddlewareValidateAccessToken validates whether the request contains a bearer token
+// it also decodes and authenticates the given token
+func (ac *AuthController) MiddlewareValidateAdminAccessToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "application/json")
+
+		ac.logger.LogAccess("validating access token")
+
+		token, err := extractToken(r)
+		if err != nil {
+			ac.logger.LogError("token not provided or malformed")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
+
+			return
+		}
+
+		userID, userRole, err := ac.authInteractor.ValidateAccessToken(token)
+		if err != nil {
+			ac.logger.LogError("token validation failed1", "error", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
+
+			return
+		}
+
+		if (userRole != "admin") {
+			ac.logger.LogError("token validation rola failed", "error", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(
+				&utils.GenericResponse{
+					Status:  false,
+					Message: "Authentication failed. Token not provided or malformed",
+				})
+
+			return
+		}
+
+		ac.logger.LogAccess("access token validated", userID)
 
 		ctx := context.WithValue(r.Context(), auth_usecase.UserIDKey{}, userID)
 		r = r.WithContext(ctx)
@@ -187,6 +243,8 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 
 			return
 		}
+
+		fmt.Println("middleware refresh token", user)
 
 		ctx := context.WithValue(r.Context(), auth_usecase.UserKey{}, user)
 		r = r.WithContext(ctx)

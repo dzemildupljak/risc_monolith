@@ -15,9 +15,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var ErrUserAlreadyExists = "User already exists with the given email"
-var ErrUserNotFound = "No user account exists with given email. Please sign in first"
-
 type ResPassword struct {
 	Code                string
 	Old_password        string
@@ -119,7 +116,10 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 
 func (ac *AuthController) hashPassword(password string) (string, error) {
 
-	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPass, err := bcrypt.GenerateFromPassword(
+		[]byte(password), 
+		bcrypt.DefaultCost,
+	)
 	if err != nil {
 		ac.logger.LogError("unable to hash password", "error", err)
 		return "", err
@@ -159,8 +159,10 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get user by email from interactora-repository
-	user, err := ac.authInteractor.UserByEmail(context.Background(), logedUser.Email)
+	// Get user by email from interactor-repository
+	user, err := ac.authInteractor.UserByEmail(
+		context.Background(), logedUser.Email)
+		
 	if err != nil {
 		ac.logger.LogError("error fetching the user", "error", err)
 
@@ -168,7 +170,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{
 				Status:  false,
-				Message: "No user account exists with given email. Please sign in first",
+				Message: "No user account exists with given email. Please sign up first",
 			})
 		return
 	}
@@ -239,7 +241,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Data: &utils.AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
-			Username:     user.Username,
+			Email:     user.Email,
 		},
 	})
 }
@@ -548,6 +550,18 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 			})
 		return
 	}
+	if user.Password != "" {
+		ac.logger.LogError(
+			"user already have password", "error", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to set new password. Please try again later",
+			})
+		return
+	}
 	hashNewPass, err := ac.hashPassword(settPassData.New_password)
 	if err != nil {
 		ac.authInteractor.Logger.LogError(
@@ -595,6 +609,21 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 
 // Index return response which contain a listing of the resource of users.
 func (uc *AuthController) Index(w http.ResponseWriter, r *http.Request) {
+	users, err := uc.authInteractor.ShowCompleteUsers(r.Context())
+
+	if err != nil {
+		uc.logger.LogError("UserController-Index: %s", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
+}
+
+// Index return response which contain a listing of the resource of users.
+func (uc *AuthController) UserIndex(w http.ResponseWriter, r *http.Request) {
 	users, err := uc.authInteractor.ShowAllUsers(r.Context())
 
 	if err != nil {
@@ -607,6 +636,7 @@ func (uc *AuthController) Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
 }
+
 
 // ForgotPassword - after some validation with code, email, expiration
 // update hashed password for user with given email

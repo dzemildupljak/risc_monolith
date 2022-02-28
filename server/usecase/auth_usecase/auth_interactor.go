@@ -51,13 +51,20 @@ type RefreshTokenCustomClaims struct {
 // AccessTokenCustomClaims specifies the claims for access token
 type AccessTokenCustomClaims struct {
 	UserID  string
+	UserRole string
 	KeyType string
 	jwt.StandardClaims
 }
 
-// Authenticate checks the user credentials in request against the db and authenticates the request
-func (auth *AuthInteractor) Authenticate(reqUser *domain.User, user *domain.User) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(reqUser.Password))
+// Authenticate checks the user credentials 
+// in request against the db and authenticates the request
+func (auth *AuthInteractor) Authenticate(
+			reqUser *domain.User, user *domain.User) bool {
+
+	err := bcrypt.CompareHashAndPassword(
+		[]byte(user.Password), 
+		[]byte(reqUser.Password),
+	)
 	if err != nil {
 		auth.Logger.LogError("password hashes are not same")
 		return false
@@ -66,34 +73,42 @@ func (auth *AuthInteractor) Authenticate(reqUser *domain.User, user *domain.User
 }
 
 // GenerateAccessToken generates a new access token for the given user
-func (auth *AuthInteractor) GenerateAccessToken(user *domain.User) (string, error) {
+func (auth *AuthInteractor) GenerateAccessToken(
+			user *domain.User) (string, error) {
 
 	userID := strconv.FormatInt(user.ID, 10)
 	tokenType := "access"
+	userRole := user.Role
 
 	claims := AccessTokenCustomClaims{
 		userID,
+		userRole,
 		tokenType,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(
 				time.Minute * time.Duration(auth.Config.JwtExpiration),
 				).Unix(),
-			Issuer:    "polaris.auth.service",
+			Issuer:    "risc_app.auth.service",
 		},
 	}
 
+	
 	signBytes, err := ioutil.ReadFile(auth.Config.AccessTokenPrivateKeyPath)
 
 	if err != nil {
 		auth.Logger.LogError("unable to read access private key", err)
-		return "", errors.New("could not generate access token. please try again later 1")
+		return "", errors.New(
+			"could not generate access token. please try again later 1")
 	}
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
 		auth.Logger.LogError("unable to parse private key", "error", err)
-		return "", errors.New("could not generate access token. please try again later 2")
+		return "", errors.New(
+			"could not generate access token. please try again later 2")
 	}
+
+	fmt.Println("claims======================",claims)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
@@ -102,7 +117,8 @@ func (auth *AuthInteractor) GenerateAccessToken(user *domain.User) (string, erro
 
 // ValidateAccessToken parses and validates the given access token
 // returns the userId present in the token payload
-func (auth *AuthInteractor) ValidateAccessToken(tokenString string) (string, error) {
+func (auth *AuthInteractor) ValidateAccessToken(
+			tokenString string) (string, string, error) {
 
 	token, err := jwt.ParseWithClaims(
 		tokenString, 
@@ -129,19 +145,21 @@ func (auth *AuthInteractor) ValidateAccessToken(tokenString string) (string, err
 
 	if err != nil {
 		auth.Logger.LogError("unable to parse claims", "error", err)
-		return "", err
+		return "","", err
 	}
 
 	claims, ok := token.Claims.(*AccessTokenCustomClaims)
+
 	if !ok || !token.Valid || claims.UserID == "" || claims.KeyType != "access" {
-		return "", errors.New("invalid token: authentication failed")
+		return "", "", errors.New("invalid token: authentication failed")
 	}
-	return claims.UserID, nil
+	return claims.UserID, claims.UserRole, nil
 }
 
 // GenerateCustomKey creates a new key for our jwt payload
 // the key is a hashed combination of the userID and user tokenhash
-func (auth *AuthInteractor) GenerateCustomKey(userID string, tokenHash string) string {
+func (auth *AuthInteractor) GenerateCustomKey(
+			userID string, tokenHash string) string {
 
 	// data := userID + tokenHash
 	h := hmac.New(sha256.New, []byte(tokenHash))
@@ -151,7 +169,8 @@ func (auth *AuthInteractor) GenerateCustomKey(userID string, tokenHash string) s
 }
 
 // GenerateRefreshToken generate a new refresh token for the given user
-func (auth *AuthInteractor) GenerateRefreshToken(user *domain.User) (string, error) {
+func (auth *AuthInteractor) GenerateRefreshToken(
+			user *domain.User) (string, error) {
 	userID := strconv.FormatInt(user.ID, 10)
 	cusKey := auth.GenerateCustomKey(userID, user.Tokenhash)
 	tokenType := "refresh"
@@ -164,20 +183,22 @@ func (auth *AuthInteractor) GenerateRefreshToken(user *domain.User) (string, err
 			ExpiresAt: time.Now().Add(
 				24 * time.Hour * time.Duration(auth.Config.JwtRefreshExpiration),
 				).Unix(),
-			Issuer:    "polaris.auth.service",
+			Issuer:    "risc_app.auth.service",
 		},
 	}
 
 	signBytes, err := ioutil.ReadFile(auth.Config.RefreshTokenPrivateKeyPath)
 	if err != nil {
 		auth.Logger.LogError("unable to read refresh private key", err)
-		return "", errors.New("could not generate refresh token. please try again later")
+		return "", errors.New(
+			"could not generate refresh token. please try again later")
 	}
 
 	signKey, err := jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 	if err != nil {
 		auth.Logger.LogError("unable to parse private key", "error", err)
-		return "", errors.New("could not generate refresh token. please try again later")
+		return "", errors.New(
+			"could not generate refresh token. please try again later")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -235,6 +256,7 @@ func (auth *AuthInteractor) RegisterUser(
 		MailVerfyCode:   utils.GenerateRandomString(8),
 		MailVerfyExpire: time.Now().Add(720 * time.Hour),
 		Name:            u.Name,
+		Role: 			 "user",
 		Email:           u.Email,
 		Username:        u.Username,
 		Password:        u.Password,
@@ -262,18 +284,31 @@ func (auth *AuthInteractor) UserByEmail(
 	return u, err
 }
 
-func (auth *AuthInteractor) UserById(ctx context.Context, usrID int64) (domain.User, error) {
+func (auth *AuthInteractor) UserById(
+			ctx context.Context, usrID int64) (domain.User, error) {
+
 	u, err := auth.AuthRepository.GetUserById(ctx, usrID)
 	return u, err
 }
 
-func (auth *AuthInteractor) ShowAllUsers(ctx context.Context) ([]domain.User, error) {
+func (auth *AuthInteractor) ShowAllUsers(
+			ctx context.Context) ([]domain.ShowUserParams, error) {
+
 	users, err := auth.AuthRepository.GetListusers(ctx)
 	return users, err
 }
+// GetCompleteListusers
+
+func (auth *AuthInteractor) ShowCompleteUsers(
+	ctx context.Context) ([]domain.User, error) {
+
+users, err := auth.AuthRepository.GetCompleteListusers(ctx)
+return users, err
+}
 
 func (auth *AuthInteractor) GenerateResetPasswCode(
-			ctx context.Context, email string) (mail_usecase.Mail, string, error) {
+			ctx context.Context, 
+			email string) (mail_usecase.Mail, string, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	min := 100000
@@ -302,7 +337,8 @@ func (auth *AuthInteractor) GenerateResetPasswCode(
 	return verfyPassword, passwordVerfyCode, err
 }
 
-func (auth *AuthInteractor) UserMailVerify(ctx context.Context, email string) error {
+func (auth *AuthInteractor) UserMailVerify(
+			ctx context.Context, email string) error {
 
 	err := auth.AuthRepository.VerifyUserMail(ctx, email)
 

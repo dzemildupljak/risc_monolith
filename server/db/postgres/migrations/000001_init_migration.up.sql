@@ -8,7 +8,6 @@ CREATE TABLE users (
   address text NOT NULL DEFAULT '',
   tokenhash text NOT NULL DEFAULT '',
   isverified bool NOT NULL DEFAULT 'false',
-  oauth_id text[],
   mail_verfy_code text NOT NULL DEFAULT '',
   mail_verfy_expire timestamp with time zone,
   createdat time NOT NULL DEFAULT CURRENT_TIME,

@@ -7,9 +7,9 @@ import (
 )
 
 type AuthRepository interface {
-	CreateUser(ctx context.Context, arg domain.CreateUserParams) (domain.User, error)
 	DeleteUserById(ctx context.Context, id int64) error
-	GetListusers(ctx context.Context) ([]domain.User, error)
+	GetListusers(ctx context.Context) ([]domain.ShowUserParams, error)
+	GetCompleteListusers(ctx context.Context) ([]domain.User, error)
 	UpdateUser(ctx context.Context, arg domain.UpdateUserParams) (domain.User, error)
 	CreateRegisterUser(ctx context.Context, arg domain.CreateRegisterUserParams) error
 	GetLogedUserByEmai(ctx context.Context, username string) (domain.ShowLoginUser, error)
@@ -20,3 +20,4 @@ type AuthRepository interface {
 	GenerateResetPasswordCode(ctx context.Context, arg domain.GenerateResetPasswordCodeParams) error
 	CreateOauthUser(ctx context.Context, arg domain.CreateOauthUserParams) (domain.User, error)
 }
+

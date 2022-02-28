@@ -14,9 +14,26 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "https://serene-fortress-45917.herokuapp.com",
+  "host": "http://localhost",
   "basePath": "/v1",
   "paths": {
+    "/admin": {
+      "get": {
+        "description": "You receive an list of users",
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "ListCompleteUsers",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/userListCompleteResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
     "/auth/forgot-password": {
       "post": {
         "description": "Need to send new password",
@@ -121,7 +138,7 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/responses/genericResponse"
+            "$ref": "#/responses/authResponse"
           },
           "401": {
             "$ref": "#/responses/genericResponse"
@@ -251,6 +268,23 @@
         }
       }
     },
+    "/refresh-token": {
+      "get": {
+        "description": "Send request within refresh-token to get new access-token",
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "RefreshToken",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/genericResponse"
+          },
+          "401": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
     "/set-password": {
       "post": {
         "description": "Need to send old pass/code/new_password",
@@ -287,6 +321,23 @@
         }
       }
     },
+    "/user": {
+      "get": {
+        "description": "You receive an list of users",
+        "tags": [
+          "User"
+        ],
+        "operationId": "ListUsers",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/userListResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
     "/verify/mail": {
       "get": {
         "description": "Recieve mail with a:href to verify email addres",
@@ -313,13 +364,13 @@
           "type": "string",
           "x-go-name": "AccessToken"
         },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
         "refresh_token": {
           "type": "string",
           "x-go-name": "RefreshToken"
-        },
-        "username": {
-          "type": "string",
-          "x-go-name": "Username"
         }
       },
       "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
@@ -341,6 +392,134 @@
         }
       },
       "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
+    },
+    "NullTime": {
+      "description": "NullTime implements the Scanner interface so\nit can be used as a scan destination, similar to NullString.",
+      "type": "object",
+      "title": "NullTime represents a time.Time that may be null.",
+      "properties": {
+        "Time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Valid": {
+          "type": "boolean"
+        }
+      },
+      "x-go-package": "database/sql"
+    },
+    "showUsers": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "x-go-name": "Address"
+        },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Id"
+        },
+        "isverified": {
+          "type": "boolean",
+          "x-go-name": "Isverified"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "role": {
+          "type": "string",
+          "x-go-name": "Role"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string",
+          "x-go-name": "AccessToken"
+        },
+        "address": {
+          "type": "string",
+          "x-go-name": "Address"
+        },
+        "createdat": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Createdat"
+        },
+        "email": {
+          "type": "string",
+          "x-go-name": "Email"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "ID"
+        },
+        "isverified": {
+          "type": "boolean",
+          "x-go-name": "Isverified"
+        },
+        "mail_verfy_code": {
+          "type": "string",
+          "x-go-name": "MailVerfyCode"
+        },
+        "mail_verfy_expire": {
+          "$ref": "#/definitions/NullTime"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "oauth_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "OauthID"
+        },
+        "password": {
+          "type": "string",
+          "x-go-name": "Password"
+        },
+        "password_verfy_code": {
+          "type": "string",
+          "x-go-name": "PasswordVerfyCode"
+        },
+        "password_verfy_expire": {
+          "$ref": "#/definitions/NullTime"
+        },
+        "role": {
+          "type": "string",
+          "x-go-name": "Role"
+        },
+        "tokenhash": {
+          "type": "string",
+          "x-go-name": "Tokenhash"
+        },
+        "updatedat": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "Updatedat"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
     }
   },
   "responses": {
@@ -354,6 +533,34 @@
       "description": "This text will appear as description of your response body.",
       "schema": {
         "$ref": "#/definitions/GenericResponse"
+      }
+    },
+    "userListCompleteResponse": {
+      "description": "List of users with complete info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "Users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        }
+      }
+    },
+    "userListResponse": {
+      "description": "List of users with basic info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "Users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/showUsers"
+            }
+          }
+        }
       }
     },
     "validationError": {

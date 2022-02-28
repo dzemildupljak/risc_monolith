@@ -16,6 +16,7 @@ type User struct {
 	Tokenhash           string       `json:"tokenhash"`
 	Isverified          bool         `json:"isverified"`
 	OauthID             []string     `json:"oauth_id"`
+	Role                string       `json:"role"`
 	MailVerfyCode       string       `json:"mail_verfy_code"`
 	MailVerfyExpire     sql.NullTime `json:"mail_verfy_expire"`
 	PasswordVerfyCode   string       `json:"password_verfy_code"`
@@ -35,6 +36,7 @@ type CreateRegisterUserParams struct {
 	Name            string    `json:"name"`
 	Email           string    `json:"email"`
 	Username        string    `json:"username"`
+	Role            string    `json:"role"`
 	Password        string    `json:"password"`
 	Tokenhash       string    `json:"tokenhash"`
 	MailVerfyCode   string    `json:"mail_verfy_code"`
@@ -43,6 +45,7 @@ type CreateRegisterUserParams struct {
 
 type CreateOauthUserParams struct {
 	Email      string   `json:"email"`
+	Role                string       `json:"role"`
 	Tokenhash  string   `json:"tokenhash"`
 	Isverified bool     `json:"isverified"`
 	OauthID    []string `json:"oauth_id"`
@@ -61,10 +64,13 @@ type ShowLoginUser struct {
 }
 
 type ShowUserParams struct {
+	Id     int64 `json:"id"`
 	Name     string `json:"name"`
 	Username string `json:"username"`
+	Role    string `json:"role"`
 	Email    string `json:"email"`
 	Address  string `json:"address"`
+	Isverified          bool         `json:"isverified"`
 }
 
 type ChangePasswordParams struct {
@@ -94,4 +100,8 @@ type ForgotPasswordValues struct {
 
 type UserEmail struct {
 	Email string `json:"email"`
+}
+
+type UserRole struct {
+	Role string `json:"role"`
 }

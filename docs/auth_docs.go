@@ -36,7 +36,7 @@ type loginRequest struct {
 // Get acces to other parts of aplication
 // Get tokens for next requests
 // responses:
-//   200: genericResponse
+//   200: authResponse
 //   401: genericResponse
 
 /////////////////////////////////////////////////
@@ -58,6 +58,17 @@ type signupRequest struct {
 //   401: genericResponse
 
 /////////////////////////////////////////////////
+
+/////////////////////////////////////////////////
+
+// swagger:route GET /refresh-token  Auth RefreshToken
+// Send request within refresh-token to get new access-token
+// responses:
+//   200: genericResponse
+//   401: genericResponse
+
+/////////////////////////////////////////////////
+
 
 // swagger:route GET /get-password-reset-code Auth GeneratePasswordResetCode
 // You receive an email with a code to change the password
