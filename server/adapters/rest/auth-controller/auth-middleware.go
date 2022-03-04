@@ -31,8 +31,6 @@ func (ac *AuthController) MiddlewareValidateUser(next http.Handler) http.Handler
 
 		w.Header().Set("Content-Type", "application/json")
 
-		fmt.Println(r.URL.Path)
-
 		user := &domain.User{}
 
 		err := json.NewDecoder(r.Body).Decode(user)
@@ -193,7 +191,7 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 		userID, customKey, err := ac.authInteractor.ValidateRefreshToken(token)
 		if err != nil {
 			ac.logger.LogError("token validation failed2", "error", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(
 				&utils.GenericResponse{
 					Status:  false,
@@ -347,6 +345,7 @@ func extractToken(r *http.Request) (string, error) {
 	if len(authHeaderContent) != 2 {
 		return "", errors.New("token not provided or malformed")
 	}
+	
 	return authHeaderContent[1], nil
 }
 

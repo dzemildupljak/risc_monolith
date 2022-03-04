@@ -25,8 +25,6 @@ func SetupDatabaseConnection() *sql.DB {
 	// 	os.Getenv("DB_PORT"),
 	// )
 
-	fmt.Println(dsn)
-
 	db, err := sql.Open("postgres", dsn)
 
 	if err != nil {

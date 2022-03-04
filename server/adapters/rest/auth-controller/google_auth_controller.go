@@ -61,8 +61,7 @@ func generateStateOauthCookie(w http.ResponseWriter) string {
 	b := make([]byte, 16)
 	rand.Read(b)
 	state := base64.URLEncoding.EncodeToString(b)
-	fmt.Println(b)
-	fmt.Println(state)
+	
 	cookie := http.Cookie{Name: "oauthstate", Value: state, Expires: expiration}
 	http.SetCookie(w, &cookie)
 
@@ -90,8 +89,7 @@ func (ac *AuthController) OauthGoogleCallback(w http.ResponseWriter, r *http.Req
 	// GetOrCreate User in your db.
 	// Redirect or response with a token.
 	// More code .....
-	fmt.Printf("UserInfo: %s\n", data)
-
+	
 	var obj GoogleUser
 	if err := json.Unmarshal(data, &obj); err != nil {
 		panic(err)
@@ -169,7 +167,7 @@ func (ac *AuthController) OauthGoogleCallback(w http.ResponseWriter, r *http.Req
 	http.SetCookie(w, cookie)
 
 	http.Redirect(w, r,
-		"http://localhost:3000/users?token="+refreshToken,
+		"http://localhost:3000/home?token="+refreshToken,
 		http.StatusTemporaryRedirect)
 }
 

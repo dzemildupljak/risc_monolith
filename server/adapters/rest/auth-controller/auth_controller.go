@@ -12,6 +12,7 @@ import (
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/mail_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -635,6 +636,39 @@ func (uc *AuthController) UserIndex(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
+}
+
+// GetUserById return response of the resource of users.
+func (uc *AuthController) BasicUserById(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId,err := strconv.ParseInt(params["user_id"], 10, 64)
+	if err != nil {
+		uc.logger.LogError("user Id validation failed", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to get user. Please try again later",
+			})
+		return
+	}
+	usr, err  := uc.authInteractor.BasicUserById(r.Context(), userId)
+
+	if err != nil {
+		uc.logger.LogError("get basic user by id", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to get user. Please try again later",
+			})
+		return
+	}
+
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(usr)
 }
 
 

@@ -84,13 +84,14 @@ func main() {
 	// 	// User routing
 	usrR := rv1.PathPrefix("/user").Subrouter()
 	// /v1/user/
-	usrR.HandleFunc("", api.authController.UserIndex).Methods("GET")
+	usrR.HandleFunc("/users", api.authController.UserIndex).Methods("GET")
+	usrR.HandleFunc("/{user_id}", api.authController.BasicUserById).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
 	// Admin routing
 	adminR := rv1.PathPrefix("/admin").Subrouter()
 	// /v1/user/
-	adminR.HandleFunc("", api.authController.Index).Methods("GET")
+	adminR.HandleFunc("/users", api.authController.Index).Methods("GET")
 	adminR.Use(api.authController.MiddlewareValidateAdminAccessToken)
 
 

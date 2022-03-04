@@ -35,6 +35,17 @@ type TokenResponse struct {
 }
 
 
+// User with basic info
+// swagger:response userResponse
+type UserResponseWrapper struct {
+	// in:body
+	Body struct {
+		User showUsers
+	}
+}
+
+
+
 
 // List of users with basic info
 // swagger:response userListResponse

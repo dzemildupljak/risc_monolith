@@ -14,7 +14,7 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "http://localhost",
+  "host": "https://serene-fortress-45917.herokuapp.com/",
   "basePath": "/v1",
   "paths": {
     "/admin": {
@@ -321,7 +321,7 @@
         }
       }
     },
-    "/user": {
+    "/user/users": {
       "get": {
         "description": "You receive an list of users",
         "tags": [
@@ -331,6 +331,23 @@
         "responses": {
           "200": {
             "$ref": "#/responses/userListResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/user/{user_id}": {
+      "get": {
+        "description": "You receive an list of users",
+        "tags": [
+          "User"
+        ],
+        "operationId": "GetUserById",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/userResponse"
           },
           "500": {
             "$ref": "#/responses/genericResponse"
@@ -559,6 +576,17 @@
             "items": {
               "$ref": "#/definitions/showUsers"
             }
+          }
+        }
+      }
+    },
+    "userResponse": {
+      "description": "User with basic info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "User": {
+            "$ref": "#/definitions/showUsers"
           }
         }
       }

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -22,8 +21,5 @@ func GenerateRandomString(n int) string {
 
 func ValidateExpirationTime(expTime time.Time) bool {
 	currTime := time.Now().Local()
-	fmt.Println("expTime", expTime)
-	fmt.Println("currTime", currTime)
-	fmt.Println("expTime.Sub(currTime).Seconds()", expTime.Sub(currTime).Seconds())
 	return expTime.Sub(currTime).Seconds() > 0
 }

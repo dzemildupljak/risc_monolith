@@ -313,6 +313,26 @@ func (q *AuthRepository) GetUserById(ctx context.Context, id int64) (domain.User
 	return i, err
 }
 
+const getBasicUserById = `-- name: GetUserById :one
+SELECT id, name, username, role, email, address, isverified FROM users
+WHERE id = $1 LIMIT 1
+`
+
+func (q *AuthRepository) GetBasicUserById(ctx context.Context, id int64) (domain.ShowUserParams, error) {
+	row := q.Queries.db.QueryRowContext(ctx, getBasicUserById, id)
+	var i domain.ShowUserParams
+	err := row.Scan(
+		&i.Id,
+		&i.Name,
+		&i.Username,
+		&i.Role,
+		&i.Email,
+		&i.Address,
+		&i.Isverified,
+	)
+	return i, err
+}
+
 const verifyUserMail = `-- name: VerifyUserMail :exec
 UPDATE users
 SET isverified = true

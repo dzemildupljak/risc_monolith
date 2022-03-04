@@ -108,8 +108,6 @@ func (auth *AuthInteractor) GenerateAccessToken(
 			"could not generate access token. please try again later 2")
 	}
 
-	fmt.Println("claims======================",claims)
-
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	return token.SignedString(signKey)
@@ -288,6 +286,13 @@ func (auth *AuthInteractor) UserById(
 			ctx context.Context, usrID int64) (domain.User, error) {
 
 	u, err := auth.AuthRepository.GetUserById(ctx, usrID)
+	return u, err
+}
+
+func (auth *AuthInteractor) BasicUserById(
+	ctx context.Context, usrID int64) (domain.ShowUserParams, error) {
+
+	u, err := auth.AuthRepository.GetBasicUserById(ctx, usrID)
 	return u, err
 }
 
