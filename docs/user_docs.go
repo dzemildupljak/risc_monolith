@@ -15,3 +15,20 @@ package docs
 //   500: genericResponse
 
 /////////////////////////////////////////////////
+// swagger:parameters UpdateUserById
+type updateUserRequest struct {
+	// in:body
+	Body struct {
+		Address  string `json:"addres"`
+		Username string `json:"username"`
+		Name     string `json:"name"`
+	}
+}
+
+// swagger:route PUT /user/{user_id} User UpdateUserById
+// You receive an list of users
+// responses:
+//   200: userResponse
+//   500: genericResponse
+
+/////////////////////////////////////////////////

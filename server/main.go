@@ -46,7 +46,7 @@ func main() {
 	// /v1/auth/signup
 	authR.HandleFunc("/signup", api.authController.SignUp).Methods("POST")
 	// /v1/auth/login
-	authR.HandleFunc("/login", api.authController.Login).Methods("POST")	
+	authR.HandleFunc("/login", api.authController.Login).Methods("POST")
 	// /v1/auth/forgot-password-code
 	authR.HandleFunc("/forgot-password-code", api.authController.ForgotPasswordCode).Methods("POST")
 	// /v1/auth/forgot-password
@@ -84,8 +84,13 @@ func main() {
 	// 	// User routing
 	usrR := rv1.PathPrefix("/user").Subrouter()
 	// /v1/user/
-	usrR.HandleFunc("/users", api.authController.UserIndex).Methods("GET")
-	usrR.HandleFunc("/{user_id}", api.authController.BasicUserById).Methods("GET")
+	usrR.HandleFunc("/users", api.userController.ListUsers).Methods("GET")
+	// /v1/user/{user_id}
+	usrR.HandleFunc("/{user_id}", api.userController.UserById).Methods("GET")
+	// /v1/user/{user_id}
+	usrR.HandleFunc("/{user_email}", api.userController.UserById).Methods("GET")
+	// /v1/user/{user_id}
+	usrR.HandleFunc("/{user_id}", api.userController.UpdateUserById).Methods("PUT")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
 	// Admin routing
@@ -93,7 +98,6 @@ func main() {
 	// /v1/user/
 	adminR.HandleFunc("/users", api.authController.Index).Methods("GET")
 	adminR.Use(api.authController.MiddlewareValidateAdminAccessToken)
-
 
 	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})

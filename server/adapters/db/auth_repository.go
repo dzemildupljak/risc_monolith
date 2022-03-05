@@ -254,8 +254,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE users 
 SET name = $1, 
     username = $2, 
-    email = $3, 
-    password = $4
+    address = $3
 RETURNING id, name, username, role, email, access_token, password, address, tokenhash, isverified, createdat, updatedat
 `
 
@@ -263,8 +262,7 @@ func (q *AuthRepository) UpdateUser(ctx context.Context, arg domain.UpdateUserPa
 	row := q.Queries.db.QueryRowContext(ctx, updateUser,
 		arg.Name,
 		arg.Username,
-		arg.Email,
-		arg.Password,
+		arg.Address,
 	)
 	var i domain.User
 	err := row.Scan(

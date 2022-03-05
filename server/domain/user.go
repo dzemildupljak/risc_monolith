@@ -45,7 +45,7 @@ type CreateRegisterUserParams struct {
 
 type CreateOauthUserParams struct {
 	Email      string   `json:"email"`
-	Role                string       `json:"role"`
+	Role       string   `json:"role"`
 	Tokenhash  string   `json:"tokenhash"`
 	Isverified bool     `json:"isverified"`
 	OauthID    []string `json:"oauth_id"`
@@ -54,8 +54,7 @@ type CreateOauthUserParams struct {
 type UpdateUserParams struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Address  string `json:"address"`
 }
 
 type ShowLoginUser struct {
@@ -64,13 +63,13 @@ type ShowLoginUser struct {
 }
 
 type ShowUserParams struct {
-	Id     int64 `json:"id"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Role    string `json:"role"`
-	Email    string `json:"email"`
-	Address  string `json:"address"`
-	Isverified          bool         `json:"isverified"`
+	Id         int64  `json:"id"`
+	Name       string `json:"name"`
+	Username   string `json:"username"`
+	Role       string `json:"role"`
+	Email      string `json:"email"`
+	Address    string `json:"address"`
+	Isverified bool   `json:"isverified"`
 }
 
 type ChangePasswordParams struct {

@@ -3,7 +3,6 @@ package auth_rest
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -89,7 +88,7 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 		})
 
 	if err != nil {
-		fmt.Println("err", err)
+		ac.logger.LogError("err", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{
@@ -118,7 +117,7 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 func (ac *AuthController) hashPassword(password string) (string, error) {
 
 	hashedPass, err := bcrypt.GenerateFromPassword(
-		[]byte(password), 
+		[]byte(password),
 		bcrypt.DefaultCost,
 	)
 	if err != nil {
@@ -163,7 +162,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	// Get user by email from interactor-repository
 	user, err := ac.authInteractor.UserByEmail(
 		context.Background(), logedUser.Email)
-		
+
 	if err != nil {
 		ac.logger.LogError("error fetching the user", "error", err)
 
@@ -242,7 +241,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Data: &utils.AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
-			Email:     user.Email,
+			Email:        user.Email,
 		},
 	})
 }
@@ -467,7 +466,7 @@ func (ac *AuthController) GeneratePassResetCode(w http.ResponseWriter, r *http.R
 	}
 
 	verfyPassMail, verfyPassCode, err := ac.authInteractor.GenerateResetPasswCode(
-		r.Context(), 
+		r.Context(),
 		user.Email,
 	)
 
@@ -523,7 +522,6 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-
 	if settPassData.New_password != settPassData.New_password_second {
 		ac.logger.LogError(
 			"unable to get user to set password different pass values", "error", err)
@@ -536,7 +534,6 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 			})
 		return
 	}
-
 
 	user, err := ac.authInteractor.UserById(context.Background(), usrId)
 	if err != nil {
@@ -577,9 +574,9 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 	}
 
 	err = ac.authInteractor.UpdatePassword(
-		r.Context(), 
+		r.Context(),
 		domain.ChangePasswordParams{
-			Email: user.Email, 
+			Email:    user.Email,
 			Password: hashNewPass,
 		},
 	)
@@ -594,7 +591,7 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 				Message: "Unable to set new password. Please try again later",
 			})
 		return
-	}	 
+	}
 
 	ac.logger.LogAccess("successfully setted new password")
 
@@ -604,9 +601,8 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 			Status:  true,
 			Message: "successfully set new password",
 		})
-	
-}
 
+}
 
 // Index return response which contain a listing of the resource of users.
 func (uc *AuthController) Index(w http.ResponseWriter, r *http.Request) {
@@ -641,7 +637,7 @@ func (uc *AuthController) UserIndex(w http.ResponseWriter, r *http.Request) {
 // GetUserById return response of the resource of users.
 func (uc *AuthController) BasicUserById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userId,err := strconv.ParseInt(params["user_id"], 10, 64)
+	userId, err := strconv.ParseInt(params["user_id"], 10, 64)
 	if err != nil {
 		uc.logger.LogError("user Id validation failed", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -652,7 +648,7 @@ func (uc *AuthController) BasicUserById(w http.ResponseWriter, r *http.Request) 
 			})
 		return
 	}
-	usr, err  := uc.authInteractor.BasicUserById(r.Context(), userId)
+	usr, err := uc.authInteractor.BasicUserById(r.Context(), userId)
 
 	if err != nil {
 		uc.logger.LogError("get basic user by id", err)
@@ -666,11 +662,9 @@ func (uc *AuthController) BasicUserById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(usr)
 }
-
 
 // ForgotPassword - after some validation with code, email, expiration
 // update hashed password for user with given email
@@ -824,7 +818,7 @@ func (ac *AuthController) ForgotPasswordCode(w http.ResponseWriter, r *http.Requ
 	}
 
 	verfyPassMail, verfyPassCode, err := ac.authInteractor.GenerateResetPasswCode(
-		r.Context(), 
+		r.Context(),
 		user.Email,
 	)
 
