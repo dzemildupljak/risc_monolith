@@ -13,9 +13,7 @@ import (
 )
 
 type Api struct {
-	authInteractor auth_usecase.AuthInteractor
 	authController auth_rest.AuthController
-	userInteractor user_usecase.UserInteractor
 	userController user_rest.UserController
 }
 

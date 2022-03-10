@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// TODO send work to whitch interacotr depending on what url params has that request
+
 type UserController struct {
 	userInteractor user_usecase.UserInteractor
 	logger         usecase.Logger

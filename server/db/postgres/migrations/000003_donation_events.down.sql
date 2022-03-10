@@ -1,0 +1,2 @@
+DROP TABLE [IF EXISTS] donation_events 
+[CASCADE | RESTRICT];
