@@ -11,7 +11,8 @@ type DonorRepository interface {
 	DonorById(ctx context.Context, id int64) (domain.Donor, error)
 	DonorByuniqueIdentificationNumber(
 		ctx context.Context, donorUniqueIdentificationNumber string) (domain.Donor, error)
-	DonorByBoodType(ctx context.Context, donorBloodType string) (domain.Donor, error)
+	DonorsByBloodType(
+		ctx context.Context, arg domain.DonorsByBloodTypeParams) ([]domain.Donor, error)
 	DonorsWithValidNewDonation(ctx context.Context) ([]domain.Donor, error)
 	DonorsByBloodTypeNum(ctx context.Context, donorBloodTypeNum int16) ([]domain.Donor, error)
 }

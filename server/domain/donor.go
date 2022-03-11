@@ -15,3 +15,8 @@ type Donor struct {
 	DonorBloodType                  string       `json:"donor_blood_type"`
 	DonorBloodTypeNum               int16        `json:"donor_blood_type_num"`
 }
+
+type DonorsByBloodTypeParams struct {
+	RowOrder  string `json:"row_order"`
+	LimitSize int32  `json:"limit_size"`
+}
