@@ -1,3 +1,6 @@
+include .env
+include .env.heroku
+
 run:
 	go run server/*.go
 
@@ -45,10 +48,10 @@ docker-compose-prod-config:
 
 heroku-logs:
 	heroku logs --tail -a serene-fortress-45917
-include .env
 
 heroku-container-push: 
 	cd docker/ && heroku container:push web --app serene-fortress-45917 --context-path ../ && cd ..
+	make migrate-up-heroku
 heroku-container-release:
 	cd docker/ && heroku container:release web --app serene-fortress-45917 && cd ..
 
@@ -62,6 +65,12 @@ migrate-up:
 
 migrate-down:
 	migrate -path server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" -verbose down
+
+migrate-up-heroku:
+	migrate -path server/db/postgres/migrations -database "$(HEROKU_DB_URI)" -verbose up
+
+migrate-down-heroku:
+	migrate -path server/db/postgres/migrations -database "$(HEROKU_DB_URI)" -verbose down
 
 
 

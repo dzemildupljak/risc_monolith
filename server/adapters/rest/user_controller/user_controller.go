@@ -7,6 +7,7 @@ import (
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
+	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/user_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 	"github.com/gorilla/mux"
@@ -49,7 +50,7 @@ func (uc *UserController) UserById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	userId, err := strconv.ParseInt(params["user_id"], 10, 64)
 	if err != nil {
-		uc.logger.LogError("user Id validation failed", "error", err)
+		uc.logger.LogError("UserById = user Id validation failed", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{
@@ -62,6 +63,41 @@ func (uc *UserController) UserById(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		uc.logger.LogError("get basic user by id", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to get user. Please try again later",
+			})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(usr)
+}
+
+// CurrentUser return response of the resource of user with if from JWT.
+func (uc *UserController) CurrentUser(w http.ResponseWriter, r *http.Request) {
+
+	userID := r.Context().Value(auth_usecase.UserIDKey{}).(string)
+	userId, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		uc.logger.LogError("code validation failed", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(
+			&utils.GenericResponse{
+				Status:  false,
+				Message: "Unable to reset password. Please try again later",
+			})
+		return
+	}
+
+	usr, err := uc.userInteractor.UserByIdInteract(r.Context(), userId)
+
+	if err != nil {
+		uc.logger.LogError("CurrentUser = get basic user by id from jwt token ", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
@@ -106,7 +142,7 @@ func (uc *UserController) UpdateUserById(w http.ResponseWriter, r *http.Request)
 	params := mux.Vars(r)
 	userId, err := strconv.ParseInt(params["user_id"], 10, 64)
 	if err != nil {
-		uc.logger.LogError("user Id validation failed", "error", err)
+		uc.logger.LogError("UpdateUserById = user Id validation failed", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{

@@ -639,7 +639,7 @@ func (uc *AuthController) BasicUserById(w http.ResponseWriter, r *http.Request) 
 	params := mux.Vars(r)
 	userId, err := strconv.ParseInt(params["user_id"], 10, 64)
 	if err != nil {
-		uc.logger.LogError("user Id validation failed", "error", err)
+		uc.logger.LogError("BasicUserById = user Id validation failed", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{

@@ -1,2 +1,1 @@
-DROP TABLE [IF EXISTS] donation_events 
-[CASCADE | RESTRICT];
+DROP TABLE IF EXISTS donation_events;
