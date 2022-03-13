@@ -14,7 +14,7 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "http://localhost/",
+  "host": "https://serene-fortress-45917.herokuapp.com/",
   "basePath": "/v1",
   "paths": {
     "/admin": {
@@ -314,6 +314,23 @@
         "responses": {
           "200": {
             "$ref": "#/responses/genericResponse"
+          },
+          "500": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/user/current": {
+      "get": {
+        "description": "You receive an user with id from JWT",
+        "tags": [
+          "User"
+        ],
+        "operationId": "CurrentUser",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/userResponse"
           },
           "500": {
             "$ref": "#/responses/genericResponse"

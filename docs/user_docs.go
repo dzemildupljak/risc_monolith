@@ -32,3 +32,10 @@ type updateUserRequest struct {
 //   500: genericResponse
 
 /////////////////////////////////////////////////
+// swagger:route GET /user/current User CurrentUser
+// You receive an user with id from JWT
+// responses:
+//   200: userResponse
+//   500: genericResponse
+
+/////////////////////////////////////////////////

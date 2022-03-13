@@ -83,16 +83,16 @@ func main() {
 
 	// 	// User routing
 	usrR := rv1.PathPrefix("/user").Subrouter()
-	// // /v1/user/
-	// usrR.HandleFunc("/users", api.userController.ListUsers).Methods("GET")
+	// /v1/user/
+	usrR.HandleFunc("/users", api.userController.ListUsers).Methods("GET")
 	// /v1/user/current
 	usrR.HandleFunc("/current", api.userController.CurrentUser).Methods("GET")
 	// /v1/user/{user_id}
-	// usrR.HandleFunc("/{user_id}", api.userController.UserById).Methods("GET")
-	// // // /v1/user/{user_id}
-	// // usrR.HandleFunc("/{user_email}", api.userController.UserById).Methods("GET")
+	usrR.HandleFunc("/{user_id}", api.userController.UserById).Methods("GET")
+	// /v1/user/{user_id}
+	usrR.HandleFunc("/{user_id}", api.userController.UpdateUserById).Methods("PUT")
 	// // /v1/user/{user_id}
-	// usrR.HandleFunc("/{user_id}", api.userController.UpdateUserById).Methods("PUT")
+	// usrR.HandleFunc("/{user_email}", api.userController.UserById).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
 	// Admin routing
