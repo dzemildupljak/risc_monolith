@@ -51,6 +51,8 @@ heroku-logs:
 
 heroku-container-push: 
 	cd docker/ && heroku container:push web --app serene-fortress-45917 --context-path ../ && cd ..
+heroku-container-push-migrate: 
+	cd docker/ && heroku container:push web --app serene-fortress-45917 --context-path ../ && cd ..
 	make migrate-up-heroku
 heroku-container-release:
 	cd docker/ && heroku container:release web --app serene-fortress-45917 && cd ..

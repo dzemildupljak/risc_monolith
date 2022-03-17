@@ -6,5 +6,7 @@ CREATE TABLE donation_events (
   event_end_date date,
   event_organizer text NOT NULL DEFAULT '',
   event_organization text NOT NULL DEFAULT '',
-  event_number_blood_donors integer
-);
+  event_number_blood_donors integer,
+  createdat time NOT NULL DEFAULT CURRENT_TIME,
+  updatedat time NOT NULL DEFAULT CURRENT_TIME
+)

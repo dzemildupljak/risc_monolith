@@ -137,7 +137,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(logedUser)
 	if err != nil {
 
-		ac.logger.LogError("deserialization of user json failed", "error", err)
+		ac.logger.LogError("login1 = deserialization of user json failed", "error", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(&utils.GenericResponse{
 			Status:  false,
@@ -149,7 +149,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	errRes, err := ac.authValidator.ValidateLoginValues(*logedUser)
 	if err != nil {
 
-		ac.logger.LogError("deserialization of user json failed", "error", err)
+		ac.logger.LogError("login2 = deserialization of user json failed", "error", err)
 
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(&utils.GenericResponse{

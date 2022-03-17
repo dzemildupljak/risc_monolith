@@ -145,7 +145,7 @@ func (ac *AuthController) MiddlewareValidateAdminAccessToken(next http.Handler) 
 			return
 		}
 
-		if (userRole != "admin") {
+		if userRole != "admin" {
 			ac.logger.LogError("token validation rola failed", "error", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(
@@ -345,7 +345,7 @@ func extractToken(r *http.Request) (string, error) {
 	if len(authHeaderContent) != 2 {
 		return "", errors.New("token not provided or malformed")
 	}
-	
+
 	return authHeaderContent[1], nil
 }
 

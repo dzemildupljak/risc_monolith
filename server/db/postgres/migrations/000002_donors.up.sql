@@ -7,5 +7,7 @@ CREATE TABLE donors (
   donor_last_donation date,
   donor_phone_number text NOT NULL DEFAULT '',
   donor_blood_type text NOT NULL DEFAULT '',
-  donor_blood_type_num smallint
+  donor_blood_type_num smallint,
+  createdat time NOT NULL DEFAULT CURRENT_TIME,
+  updatedat time NOT NULL DEFAULT CURRENT_TIME
 );

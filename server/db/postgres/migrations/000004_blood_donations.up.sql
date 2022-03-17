@@ -8,5 +8,6 @@ CREATE TABLE blood_donations (
   medical_worker_id BIGSERIAL  NOT NULL,
   FOREIGN KEY(medical_worker_id) REFERENCES users(id),
   donation_event_id BIGSERIAL  NOT NULL,
-  FOREIGN KEY(donation_event_id) REFERENCES donation_events(event_id)
-);
+  FOREIGN KEY(donation_event_id) REFERENCES donation_events(event_id),
+  createdat time NOT NULL DEFAULT CURRENT_TIME
+)

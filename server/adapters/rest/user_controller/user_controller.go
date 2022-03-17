@@ -84,7 +84,7 @@ func (uc *UserController) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(auth_usecase.UserIDKey{}).(string)
 	userId, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
-		uc.logger.LogError("code validation failed", "error", err)
+		uc.logger.LogError("CurrentUser = code validation failed", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{
