@@ -89,7 +89,7 @@ func (ac *AuthController) MiddlewareValidateAccessToken(next http.Handler) http.
 			return
 		}
 
-		userID, _, err := ac.authInteractor.ValidateAccessToken(token)
+		userID, _, err := ac.ai.ValidateAccessToken(token)
 		if err != nil {
 			ac.logger.LogError("token validation failed1", "error", err)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -132,7 +132,7 @@ func (ac *AuthController) MiddlewareValidateAdminAccessToken(next http.Handler) 
 			return
 		}
 
-		userID, userRole, err := ac.authInteractor.ValidateAccessToken(token)
+		userID, userRole, err := ac.ai.ValidateAccessToken(token)
 		if err != nil {
 			ac.logger.LogError("token validation failed1", "error", err)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -188,7 +188,7 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 		}
 		ac.logger.LogAccess("token present in header")
 
-		userID, customKey, err := ac.authInteractor.ValidateRefreshToken(token)
+		userID, customKey, err := ac.ai.ValidateRefreshToken(token)
 		if err != nil {
 			ac.logger.LogError("token validation failed2", "error", err)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -213,7 +213,7 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 				})
 			return
 		}
-		user, err := ac.authInteractor.UserById(context.Background(), usrId)
+		user, err := ac.ai.UserById(context.Background(), usrId)
 		if err != nil {
 			ac.logger.LogError("invalid token: wrong userID while parsing", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -226,7 +226,7 @@ func (ac *AuthController) MiddlewareValidateRefreshToken(next http.Handler) http
 			return
 		}
 
-		actualCustomKey := ac.authInteractor.GenerateCustomKey(
+		actualCustomKey := ac.ai.GenerateCustomKey(
 			strconv.FormatInt(user.ID, 10),
 			user.Tokenhash)
 
@@ -286,7 +286,7 @@ func (ac *AuthController) MiddlewareValidateMailVerificationData(next http.Handl
 			Type:  c,
 		}
 
-		user, err := ac.authInteractor.UserByEmail(r.Context(), verificationData.Email)
+		user, err := ac.ai.UserByEmail(r.Context(), verificationData.Email)
 		if err != nil {
 			ac.logger.LogError("verification code failed", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)

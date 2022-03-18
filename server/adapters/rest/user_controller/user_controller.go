@@ -16,8 +16,8 @@ import (
 // TODO send work to whitch interacotr depending on what url params has that request
 
 type UserController struct {
-	userInteractor user_usecase.UserInteractor
-	logger         usecase.Logger
+	ui     user_usecase.UserInteractor
+	logger usecase.Logger
 }
 
 func NewUserController(
@@ -25,14 +25,14 @@ func NewUserController(
 	logger usecase.Logger) *UserController {
 
 	return &UserController{
-		logger:         logger,
-		userInteractor: ui,
+		logger: logger,
+		ui:     ui,
 	}
 }
 
 // Index return response which contain a listing of the resource of users.
 func (uc *UserController) ListUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := uc.userInteractor.ListUsersInteract(r.Context())
+	users, err := uc.ui.ListUsersInteract(r.Context())
 
 	if err != nil {
 		uc.logger.LogError("UserController-Index: %s", err)
@@ -59,7 +59,7 @@ func (uc *UserController) UserById(w http.ResponseWriter, r *http.Request) {
 			})
 		return
 	}
-	usr, err := uc.userInteractor.UserByIdInteract(r.Context(), userId)
+	usr, err := uc.ui.UserByIdInteract(r.Context(), userId)
 
 	if err != nil {
 		uc.logger.LogError("get basic user by id", err)
@@ -94,7 +94,7 @@ func (uc *UserController) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usr, err := uc.userInteractor.UserByIdInteract(r.Context(), userId)
+	usr, err := uc.ui.UserByIdInteract(r.Context(), userId)
 
 	if err != nil {
 		uc.logger.LogError("CurrentUser = get basic user by id from jwt token ", err)
@@ -118,7 +118,7 @@ func (uc *UserController) UserByEmail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	useEmail := params["user_id"]
 
-	usr, err := uc.userInteractor.UserByEmailInteract(r.Context(), useEmail)
+	usr, err := uc.ui.UserByEmailInteract(r.Context(), useEmail)
 
 	if err != nil {
 		uc.logger.LogError("get basic user by email", err)
@@ -164,7 +164,7 @@ func (uc *UserController) UpdateUserById(w http.ResponseWriter, r *http.Request)
 			})
 		return
 	}
-	usr, err := uc.userInteractor.UserUpdate(r.Context(), userId, *user)
+	usr, err := uc.ui.UserUpdate(r.Context(), userId, *user)
 
 	if err != nil {
 		uc.logger.LogError("get basic user by id", err)

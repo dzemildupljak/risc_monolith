@@ -107,13 +107,13 @@ func (q *DonorRepository) DonorList(ctx context.Context) ([]domain.Donor, error)
 	return items, nil
 }
 
-func (q *Queries) DonorById(ctx context.Context, donorID int64) (domain.Donor, error) {
+func (q *DonorRepository) DonorById(ctx context.Context, donorID int64) (domain.Donor, error) {
 	var donorById string = `-- name: DonorById :one
 	SELECT ` + completeDonor + `
 	FROM donors
 	WHERE donor_id = $1
 	`
-	row := q.db.QueryRowContext(ctx, donorById, donorID)
+	row := q.Queries.db.QueryRowContext(ctx, donorById, donorID)
 	var i domain.Donor
 	err := row.Scan(
 		&i.DonorName,
@@ -128,13 +128,13 @@ func (q *Queries) DonorById(ctx context.Context, donorID int64) (domain.Donor, e
 	return i, err
 }
 
-func (q *Queries) DonorByuniqueIdentificationNumber(ctx context.Context, donorUniqueIdentificationNumber string) (domain.Donor, error) {
+func (q *DonorRepository) DonorByuniqueIdentificationNumber(ctx context.Context, donorUniqueIdentificationNumber string) (domain.Donor, error) {
 	var donorByuniqueIdentificationNumber string = `-- name: DonorByuniqueIdentificationNumber :one
 	SELECT ` + completeDonor + `
 	FROM donors
 	WHERE  pgp_sym_decrypt(donor_unique_identification_number::bytea, '` + encryp_key + `') = $1
 	`
-	row := q.db.QueryRowContext(ctx, donorByuniqueIdentificationNumber, donorUniqueIdentificationNumber)
+	row := q.Queries.db.QueryRowContext(ctx, donorByuniqueIdentificationNumber, donorUniqueIdentificationNumber)
 	var i domain.Donor
 	err := row.Scan(
 		&i.DonorName,
@@ -149,13 +149,13 @@ func (q *Queries) DonorByuniqueIdentificationNumber(ctx context.Context, donorUn
 	return i, err
 }
 
-func (q *Queries) DonorsByBloodType(ctx context.Context, donorBloodTypeNum int16) ([]domain.Donor, error) {
+func (q *DonorRepository) DonorsByBloodType(ctx context.Context, donorBloodTypeNum int16) ([]domain.Donor, error) {
 	var donorsByBloodType string = `-- name: DonorsByBloodType :many
 	SELECT ` + completeDonor + `
 	FROM donors
 	WHERE  donor_blood_type_num = $1
 	`
-	rows, err := q.db.QueryContext(ctx, donorsByBloodType, donorBloodTypeNum)
+	rows, err := q.Queries.db.QueryContext(ctx, donorsByBloodType, donorBloodTypeNum)
 	if err != nil {
 		return nil, err
 	}
@@ -186,14 +186,14 @@ func (q *Queries) DonorsByBloodType(ctx context.Context, donorBloodTypeNum int16
 	return items, nil
 }
 
-func (q *Queries) DonorsWithValidNewDonation(ctx context.Context) ([]domain.Donor, error) {
+func (q *DonorRepository) DonorsWithValidNewDonation(ctx context.Context) ([]domain.Donor, error) {
 	var donorsWithValidNewDonation string = `-- name: DonorsWithValidNewDonation :many
 	SELECT ` + completeDonor + `
 	FROM donors
 	WHERE donor_last_donation < now() - '4 months' :: interval
 	ORDER BY donor_surname
 	`
-	rows, err := q.db.QueryContext(ctx, donorsWithValidNewDonation)
+	rows, err := q.Queries.db.QueryContext(ctx, donorsWithValidNewDonation)
 	if err != nil {
 		return nil, err
 	}

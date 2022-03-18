@@ -95,6 +95,11 @@ func main() {
 	// usrR.HandleFunc("/{user_email}", api.userController.UserById).Methods("GET")
 	usrR.Use(api.authController.MiddlewareValidateAccessToken)
 
+	// Donor Routing
+	donorR := rv1.PathPrefix("/donor").Subrouter()
+	donorR.HandleFunc("/donors", api.donorController.ListDonors).Methods("GET")
+	donorR.Use(api.authController.MiddlewareValidateAccessToken)
+
 	// Admin routing
 	adminR := rv1.PathPrefix("/admin").Subrouter()
 	// /v1/user/

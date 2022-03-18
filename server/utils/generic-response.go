@@ -26,14 +26,13 @@ type AuthResponseWrapper struct {
 type AuthResponse struct {
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
-	Email     string `json:"email"`
+	Email        string `json:"email"`
 }
 
 type TokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
 }
-
 
 // User with basic info
 // swagger:response userResponse
@@ -44,9 +43,6 @@ type UserResponseWrapper struct {
 	}
 }
 
-
-
-
 // List of users with basic info
 // swagger:response userListResponse
 type ListUserResponseWrapper struct {
@@ -56,14 +52,34 @@ type ListUserResponseWrapper struct {
 	}
 }
 
+// List of donors with basic info
+// swagger:response donorListResponse
+type ListDonorResponseWrapper struct {
+	// in:body
+	Body struct {
+		Donors []showDonor
+	}
+}
+
+type showDonor struct {
+	DonorName                       string    `json:"donor_name"`
+	DonorSurname                    string    `json:"donor_surname"`
+	DonorBloodType                  string    `json:"donor_blood_type"`
+	DonorUniqueIdentificationNumber string    `json:"donor_unique_identification_number"`
+	DonorAddress                    string    `json:"donor_address"`
+	DonorLastDonationDate           time.Time `json:"donor_last_donation"`
+	DonorPhoneNumber                string    `json:"donor_phone_number"`
+	DonorBloodTypeNum               int16     `json:"donor_blood_type_num"`
+}
+
 type showUsers struct {
-	Id     int64 `json:"id"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Role    string `json:"role"`
-	Email    string `json:"email"`
-	Address  string `json:"address"`
-	Isverified          bool         `json:"isverified"`
+	Id         int64  `json:"id"`
+	Name       string `json:"name"`
+	Username   string `json:"username"`
+	Role       string `json:"role"`
+	Email      string `json:"email"`
+	Address    string `json:"address"`
+	Isverified bool   `json:"isverified"`
 }
 
 // List of users with complete info

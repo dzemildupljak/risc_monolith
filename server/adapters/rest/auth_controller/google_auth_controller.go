@@ -95,12 +95,12 @@ func (ac *AuthController) OauthGoogleCallback(w http.ResponseWriter, r *http.Req
 		panic(err)
 	}
 
-	usr, err := ac.authInteractor.UserByEmail(r.Context(), obj.Email)
+	usr, err := ac.ai.UserByEmail(r.Context(), obj.Email)
 
 	if err != nil {
 		tokenhash := utils.GenerateRandomString(15)
 
-		usr, err = ac.authInteractor.RegisterOauthUser(context.Background(),
+		usr, err = ac.ai.RegisterOauthUser(context.Background(),
 			domain.CreateOauthUserParams{
 				Email:      obj.Email,
 				Tokenhash:  tokenhash,
@@ -133,7 +133,7 @@ func (ac *AuthController) OauthGoogleCallback(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	accessToken, err := ac.authInteractor.GenerateAccessToken(&usr)
+	accessToken, err := ac.ai.GenerateAccessToken(&usr)
 	if err != nil {
 		ac.logger.LogError("unable to generate access token", "error", err)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -146,7 +146,7 @@ func (ac *AuthController) OauthGoogleCallback(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	refreshToken, err := ac.authInteractor.GenerateRefreshToken(&usr)
+	refreshToken, err := ac.ai.GenerateRefreshToken(&usr)
 	if err != nil {
 		ac.logger.LogError("unable to generate refresh token", "error", err)
 		w.WriteHeader(http.StatusUnauthorized)

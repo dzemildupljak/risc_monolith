@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Donor struct {
@@ -25,6 +26,16 @@ type CreateDonorParams struct {
 	DonorLastDonation               sql.NullTime `json:"donor_last_donation"`
 	DonorPhoneNumber                string       `json:"donor_phone_number"`
 	DonorBloodTypeNum               int16        `json:"donor_blood_type_num"`
+}
+type ShowDonorParams struct {
+	DonorName                       string    `json:"donor_name"`
+	DonorSurname                    string    `json:"donor_surname"`
+	DonorBloodType                  string    `json:"donor_blood_type"`
+	DonorUniqueIdentificationNumber string    `json:"donor_unique_identification_number"`
+	DonorAddress                    string    `json:"donor_address"`
+	DonorLastDonationDate           time.Time `json:"donor_last_donation"`
+	DonorPhoneNumber                string    `json:"donor_phone_number"`
+	DonorBloodTypeNum               int16     `json:"donor_blood_type_num"`
 }
 
 type DonorsByBloodTypeParams struct {

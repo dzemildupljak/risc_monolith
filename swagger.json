@@ -14,7 +14,7 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "serene-fortress-45917.herokuapp.com",
+  "host": "localhost",
   "basePath": "/v1",
   "paths": {
     "/admin": {
@@ -185,6 +185,23 @@
             "$ref": "#/responses/genericResponse"
           },
           "401": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/donor/donors": {
+      "get": {
+        "description": "You receive an list of donors",
+        "tags": [
+          "Donor"
+        ],
+        "operationId": "ListDonors",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/donorListResponse"
+          },
+          "500": {
             "$ref": "#/responses/genericResponse"
           }
         }
@@ -480,6 +497,46 @@
       },
       "x-go-package": "database/sql"
     },
+    "showDonor": {
+      "type": "object",
+      "properties": {
+        "donor_address": {
+          "type": "string",
+          "x-go-name": "DonorAddress"
+        },
+        "donor_blood_type": {
+          "type": "string",
+          "x-go-name": "DonorBloodType"
+        },
+        "donor_blood_type_num": {
+          "type": "integer",
+          "format": "int16",
+          "x-go-name": "DonorBloodTypeNum"
+        },
+        "donor_last_donation": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "DonorLastDonationDate"
+        },
+        "donor_name": {
+          "type": "string",
+          "x-go-name": "DonorName"
+        },
+        "donor_phone_number": {
+          "type": "string",
+          "x-go-name": "DonorPhoneNumber"
+        },
+        "donor_surname": {
+          "type": "string",
+          "x-go-name": "DonorSurname"
+        },
+        "donor_unique_identification_number": {
+          "type": "string",
+          "x-go-name": "DonorUniqueIdentificationNumber"
+        }
+      },
+      "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
+    },
     "showUsers": {
       "type": "object",
       "properties": {
@@ -599,6 +656,20 @@
       "description": "AuthResponse",
       "schema": {
         "$ref": "#/definitions/AuthResponse"
+      }
+    },
+    "donorListResponse": {
+      "description": "List of donors with basic info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "Donors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/showDonor"
+            }
+          }
+        }
       }
     },
     "genericResponse": {
