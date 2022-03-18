@@ -14,7 +14,7 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "https://serene-fortress-45917.herokuapp.com/",
+  "host": "serene-fortress-45917.herokuapp.com",
   "basePath": "/v1",
   "paths": {
     "/admin": {
