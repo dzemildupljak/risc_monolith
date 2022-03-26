@@ -61,6 +61,15 @@ type ListDonorResponseWrapper struct {
 	}
 }
 
+// Donor with basic info
+// swagger:response donorResponse
+type DonorResponseWrapper struct {
+	// in:body
+	Body struct {
+		Donor showDonor
+	}
+}
+
 type showDonor struct {
 	DonorName                       string    `json:"donor_name"`
 	DonorSurname                    string    `json:"donor_surname"`

@@ -97,7 +97,16 @@ func main() {
 
 	// Donor Routing
 	donorR := rv1.PathPrefix("/donor").Subrouter()
+	// /v1/donor/
+	donorR.HandleFunc("/", api.donorController.CreateNewDonor).Methods("POST")
+	// /v1/donor/donors
 	donorR.HandleFunc("/donors", api.donorController.ListDonors).Methods("GET")
+	// /v1/donor/{donor_id}
+	donorR.HandleFunc("/{donor_id}", api.donorController.DonorById).Methods("GET")
+	// /v1/donor/blood-type/{blood_type}
+	donorR.HandleFunc("/blood-type/{blood_type}", api.donorController.DonorByBloodType).Methods("GET")
+	// /v1/donor/unique
+	donorR.HandleFunc("/unique", api.donorController.DonorByUniqueNumber).Methods("POST")
 	donorR.Use(api.authController.MiddlewareValidateAccessToken)
 
 	// Admin routing

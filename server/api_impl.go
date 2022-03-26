@@ -38,9 +38,11 @@ func ApiImplementation(db sql.DB, l usecase.Logger) Api {
 	userRepo := psql.NewUserRepository(*pgdb)
 	donorRepo := psql.NewDonorRepository(*pgdb)
 
+	mapper := utils.NewMapper()
+
 	authInteractor := auth_usecase.NewAuthInteractor(authRepo, l)
 	userInteractor := user_usecase.NewUserInteractor(userRepo, l)
-	donorInteractor := donor_usecase.NewDonorInteractor(donorRepo, l)
+	donorInteractor := donor_usecase.NewDonorInteractor(donorRepo, l, *mapper)
 
 	authValidator := utils.NewAuthValidator(l)
 
