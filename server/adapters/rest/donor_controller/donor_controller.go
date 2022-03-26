@@ -7,18 +7,17 @@ import (
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
-	"github.com/dzemildupljak/risc_monolith/server/usecase/donor_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 	"github.com/gorilla/mux"
 )
 
 type DonorController struct {
-	di  donor_usecase.DonorInteractor
+	di  DonorUsecase
 	log usecase.Logger
 }
 
 func NewDonorController(
-	di donor_usecase.DonorInteractor,
+	di DonorUsecase,
 	l usecase.Logger) *DonorController {
 
 	return &DonorController{

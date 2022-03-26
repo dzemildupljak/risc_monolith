@@ -29,14 +29,14 @@ type SetPasswordValues struct {
 
 // A AuthController belong to the interface layer.
 type AuthController struct {
-	ai     auth_usecase.AuthInteractor
+	ai     AuthUsecase
 	av     utils.AuthValidator
-	mi     mail_usecase.MailInteractor
+	mi     mail_usecase.MailUsecase
 	logger usecase.Logger
 }
 
 func NewAuthController(
-	ai auth_usecase.AuthInteractor,
+	ai AuthUsecase,
 	av utils.AuthValidator,
 	logger usecase.Logger) *AuthController {
 	return &AuthController{
@@ -361,7 +361,7 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 		[]byte(resPassData.Old_password))
 
 	if err != nil {
-		ac.ai.Logger.LogError("old password invalid")
+		ac.logger.LogError("old password invalid")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
 			&utils.GenericResponse{
@@ -372,7 +372,7 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 	}
 
 	if user.PasswordVerfyCode != resPassData.Code {
-		ac.ai.Logger.LogError(
+		ac.logger.LogError(
 			"requested code and user code are not same - reset password")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
@@ -384,7 +384,7 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 	}
 
 	if resPassData.New_password != resPassData.New_password_second {
-		ac.ai.Logger.LogError(
+		ac.logger.LogError(
 			"new_password and new_password_second are different - reset password")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
@@ -397,7 +397,7 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 
 	hashNewPass, err := ac.hashPassword(resPassData.New_password)
 	if err != nil {
-		ac.ai.Logger.LogError(
+		ac.logger.LogError(
 			"hasing new password failed - reset password")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
@@ -415,7 +415,7 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 			Password: hashNewPass,
 		})
 	if err != nil {
-		ac.ai.Logger.LogError(
+		ac.logger.LogError(
 			"updateting user password faield - reset password")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
@@ -562,7 +562,7 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 	}
 	hashNewPass, err := ac.hashPassword(settPassData.New_password)
 	if err != nil {
-		ac.ai.Logger.LogError(
+		ac.logger.LogError(
 			"hasing new password failed - reset password")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(

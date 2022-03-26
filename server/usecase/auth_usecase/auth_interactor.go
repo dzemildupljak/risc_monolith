@@ -50,19 +50,19 @@ type RefreshTokenCustomClaims struct {
 
 // AccessTokenCustomClaims specifies the claims for access token
 type AccessTokenCustomClaims struct {
-	UserID  string
+	UserID   string
 	UserRole string
-	KeyType string
+	KeyType  string
 	jwt.StandardClaims
 }
 
-// Authenticate checks the user credentials 
+// Authenticate checks the user credentials
 // in request against the db and authenticates the request
 func (auth *AuthInteractor) Authenticate(
-			reqUser *domain.User, user *domain.User) bool {
+	reqUser *domain.User, user *domain.User) bool {
 
 	err := bcrypt.CompareHashAndPassword(
-		[]byte(user.Password), 
+		[]byte(user.Password),
 		[]byte(reqUser.Password),
 	)
 	if err != nil {
@@ -74,7 +74,7 @@ func (auth *AuthInteractor) Authenticate(
 
 // GenerateAccessToken generates a new access token for the given user
 func (auth *AuthInteractor) GenerateAccessToken(
-			user *domain.User) (string, error) {
+	user *domain.User) (string, error) {
 
 	userID := strconv.FormatInt(user.ID, 10)
 	tokenType := "access"
@@ -87,12 +87,11 @@ func (auth *AuthInteractor) GenerateAccessToken(
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(
 				time.Minute * time.Duration(auth.Config.JwtExpiration),
-				).Unix(),
-			Issuer:    "risc_app.auth.service",
+			).Unix(),
+			Issuer: "risc_app.auth.service",
 		},
 	}
 
-	
 	signBytes, err := ioutil.ReadFile(auth.Config.AccessTokenPrivateKeyPath)
 
 	if err != nil {
@@ -116,34 +115,34 @@ func (auth *AuthInteractor) GenerateAccessToken(
 // ValidateAccessToken parses and validates the given access token
 // returns the userId present in the token payload
 func (auth *AuthInteractor) ValidateAccessToken(
-			tokenString string) (string, string, error) {
+	tokenString string) (string, string, error) {
 
 	token, err := jwt.ParseWithClaims(
-		tokenString, 
-		&AccessTokenCustomClaims{}, 
+		tokenString,
+		&AccessTokenCustomClaims{},
 		func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			auth.Logger.LogError("Unexpected signing method in auth token")
-			return nil, errors.New("unexpected signing method in auth token")
-		}
-		verifyBytes, err := ioutil.ReadFile(auth.Config.AccessTokenPublicKeyPath)
-		if err != nil {
-			auth.Logger.LogError("unable to read public key", "error", err)
-			return nil, err
-		}
+			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+				auth.Logger.LogError("Unexpected signing method in auth token")
+				return nil, errors.New("unexpected signing method in auth token")
+			}
+			verifyBytes, err := ioutil.ReadFile(auth.Config.AccessTokenPublicKeyPath)
+			if err != nil {
+				auth.Logger.LogError("unable to read public key", "error", err)
+				return nil, err
+			}
 
-		verifyKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
-		if err != nil {
-			auth.Logger.LogError("unable to parse public key", "error", err)
-			return nil, err
-		}
+			verifyKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+			if err != nil {
+				auth.Logger.LogError("unable to parse public key", "error", err)
+				return nil, err
+			}
 
-		return verifyKey, nil
-	})
+			return verifyKey, nil
+		})
 
 	if err != nil {
 		auth.Logger.LogError("unable to parse claims", "error", err)
-		return "","", err
+		return "", "", err
 	}
 
 	claims, ok := token.Claims.(*AccessTokenCustomClaims)
@@ -157,7 +156,7 @@ func (auth *AuthInteractor) ValidateAccessToken(
 // GenerateCustomKey creates a new key for our jwt payload
 // the key is a hashed combination of the userID and user tokenhash
 func (auth *AuthInteractor) GenerateCustomKey(
-			userID string, tokenHash string) string {
+	userID string, tokenHash string) string {
 
 	// data := userID + tokenHash
 	h := hmac.New(sha256.New, []byte(tokenHash))
@@ -168,7 +167,7 @@ func (auth *AuthInteractor) GenerateCustomKey(
 
 // GenerateRefreshToken generate a new refresh token for the given user
 func (auth *AuthInteractor) GenerateRefreshToken(
-			user *domain.User) (string, error) {
+	user *domain.User) (string, error) {
 	userID := strconv.FormatInt(user.ID, 10)
 	cusKey := auth.GenerateCustomKey(userID, user.Tokenhash)
 	tokenType := "refresh"
@@ -180,8 +179,8 @@ func (auth *AuthInteractor) GenerateRefreshToken(
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(
 				24 * time.Hour * time.Duration(auth.Config.JwtRefreshExpiration),
-				).Unix(),
-			Issuer:    "risc_app.auth.service",
+			).Unix(),
+			Issuer: "risc_app.auth.service",
 		},
 	}
 
@@ -207,30 +206,30 @@ func (auth *AuthInteractor) GenerateRefreshToken(
 // ValidateRefreshToken parses and validates the given refresh token
 // returns the userId and customkey present in the token payload
 func (auth *AuthInteractor) ValidateRefreshToken(
-			tokenString string) (string, string, error) {
+	tokenString string) (string, string, error) {
 
 	token, err := jwt.ParseWithClaims(
-		tokenString, 
-		&RefreshTokenCustomClaims{}, 
+		tokenString,
+		&RefreshTokenCustomClaims{},
 		func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			auth.Logger.LogError("unexpected signing method in auth token")
-			return nil, errors.New("unexpected signing method in auth token")
-		}
-		verifyBytes, err := ioutil.ReadFile(auth.Config.RefreshTokenPublicKeyPath)
-		if err != nil {
-			auth.Logger.LogError("unable to read public key", "error", err)
-			return nil, err
-		}
+			if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+				auth.Logger.LogError("unexpected signing method in auth token")
+				return nil, errors.New("unexpected signing method in auth token")
+			}
+			verifyBytes, err := ioutil.ReadFile(auth.Config.RefreshTokenPublicKeyPath)
+			if err != nil {
+				auth.Logger.LogError("unable to read public key", "error", err)
+				return nil, err
+			}
 
-		verifyKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
-		if err != nil {
-			auth.Logger.LogError("unable to parse public key", "error", err)
-			return nil, err
-		}
+			verifyKey, err := jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+			if err != nil {
+				auth.Logger.LogError("unable to parse public key", "error", err)
+				return nil, err
+			}
 
-		return verifyKey, nil
-	})
+			return verifyKey, nil
+		})
 
 	if err != nil {
 		auth.Logger.LogError("unable to parse claims", "error", err)
@@ -247,14 +246,14 @@ func (auth *AuthInteractor) ValidateRefreshToken(
 }
 
 func (auth *AuthInteractor) RegisterUser(
-			ctx context.Context, 
-			u domain.CreateUserParams) (string, error) {
+	ctx context.Context,
+	u domain.CreateUserParams) (string, error) {
 
 	usr := domain.CreateRegisterUserParams{
 		MailVerfyCode:   utils.GenerateRandomString(8),
 		MailVerfyExpire: time.Now().Add(720 * time.Hour),
 		Name:            u.Name,
-		Role: 			 "user",
+		Role:            "user",
 		Email:           u.Email,
 		Username:        u.Username,
 		Password:        u.Password,
@@ -267,23 +266,23 @@ func (auth *AuthInteractor) RegisterUser(
 }
 
 func (auth *AuthInteractor) RegisterOauthUser(
-			ctx context.Context, 
-			u domain.CreateOauthUserParams) (domain.User, error) {
-				
+	ctx context.Context,
+	u domain.CreateOauthUserParams) (domain.User, error) {
+
 	newUsr, err := auth.AuthRepository.CreateOauthUser(ctx, u)
 
 	return newUsr, err
 }
 
 func (auth *AuthInteractor) UserByEmail(
-			ctx context.Context, email string) (domain.User, error) {
+	ctx context.Context, email string) (domain.User, error) {
 
 	u, err := auth.AuthRepository.GetUserByEmail(ctx, email)
 	return u, err
 }
 
 func (auth *AuthInteractor) UserById(
-			ctx context.Context, usrID int64) (domain.User, error) {
+	ctx context.Context, usrID int64) (domain.User, error) {
 
 	u, err := auth.AuthRepository.GetUserById(ctx, usrID)
 	return u, err
@@ -297,23 +296,24 @@ func (auth *AuthInteractor) BasicUserById(
 }
 
 func (auth *AuthInteractor) ShowAllUsers(
-			ctx context.Context) ([]domain.ShowUserParams, error) {
+	ctx context.Context) ([]domain.ShowUserParams, error) {
 
 	users, err := auth.AuthRepository.GetListusers(ctx)
 	return users, err
 }
+
 // GetCompleteListusers
 
 func (auth *AuthInteractor) ShowCompleteUsers(
 	ctx context.Context) ([]domain.User, error) {
 
-users, err := auth.AuthRepository.GetCompleteListusers(ctx)
-return users, err
+	users, err := auth.AuthRepository.GetCompleteListusers(ctx)
+	return users, err
 }
 
 func (auth *AuthInteractor) GenerateResetPasswCode(
-			ctx context.Context, 
-			email string) (mail_usecase.Mail, string, error) {
+	ctx context.Context,
+	email string) (mail_usecase.Mail, string, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	min := 100000
@@ -321,7 +321,7 @@ func (auth *AuthInteractor) GenerateResetPasswCode(
 	passVerCode := fmt.Sprint(rand.Intn(max-min+1) + min)
 	passwordVerfyCode := passVerCode[:3] + "-" + passVerCode[3:]
 	passwordVerfyExpire := sql.NullTime{
-		Time: time.Now().Local().Add(1 * time.Hour), 
+		Time:  time.Now().Local().Add(1 * time.Hour),
 		Valid: true,
 	}
 
@@ -343,7 +343,7 @@ func (auth *AuthInteractor) GenerateResetPasswCode(
 }
 
 func (auth *AuthInteractor) UserMailVerify(
-			ctx context.Context, email string) error {
+	ctx context.Context, email string) error {
 
 	err := auth.AuthRepository.VerifyUserMail(ctx, email)
 
@@ -351,7 +351,7 @@ func (auth *AuthInteractor) UserMailVerify(
 }
 
 func (auth *AuthInteractor) UpdatePassword(
-			ctx context.Context, usr domain.ChangePasswordParams) error {
+	ctx context.Context, usr domain.ChangePasswordParams) error {
 
 	err := auth.AuthRepository.ChangePassword(ctx, usr)
 

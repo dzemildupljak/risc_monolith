@@ -46,9 +46,9 @@ func ApiImplementation(db sql.DB, l usecase.Logger) Api {
 
 	authValidator := utils.NewAuthValidator(l)
 
-	authController := auth_rest.NewAuthController(*authInteractor, *authValidator, l)
-	userController := user_rest.NewUserController(*userInteractor, l)
-	donorController := donor_rest.NewDonorController(*donorInteractor, l)
+	authController := auth_rest.NewAuthController(authInteractor, *authValidator, l)
+	userController := user_rest.NewUserController(userInteractor, l)
+	donorController := donor_rest.NewDonorController(donorInteractor, l)
 
 	return *newApi(*authController, *userController, *donorController)
 
