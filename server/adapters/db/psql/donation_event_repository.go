@@ -22,11 +22,11 @@ ORDER BY $1::text
 LIMIT $2::integer
 `
 
-func (q *Queries) DonationEventsList(
+func (q *DonationEventRepository) DonationEventsList(
 	ctx context.Context,
 	arg domain.DonationEventsListParams) ([]domain.DonationEvent, error) {
 
-	rows, err := q.db.QueryContext(ctx, donationEventsList, arg.RowOrder, arg.LimitSize)
+	rows, err := q.Queries.db.QueryContext(ctx, donationEventsList, arg.RowOrder, arg.LimitSize)
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +62,10 @@ SELECT event_id, event_name, event_location, event_start_date, event_end_date, e
 WHERE event_id=$1
 `
 
-func (q *Queries) DonationEventById(
+func (q *DonationEventRepository) DonationEventById(
 	ctx context.Context, eventID int64) (domain.DonationEvent, error) {
 
-	row := q.db.QueryRowContext(ctx, donationEventById, eventID)
+	row := q.Queries.db.QueryRowContext(ctx, donationEventById, eventID)
 	var i domain.DonationEvent
 	err := row.Scan(
 		&i.EventID,

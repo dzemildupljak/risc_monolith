@@ -1,4 +1,4 @@
-package donor_usecase
+package donationevent_usecase
 
 import (
 	"context"

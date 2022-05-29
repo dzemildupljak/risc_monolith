@@ -109,6 +109,9 @@ func main() {
 	donorR.HandleFunc("/unique", api.donorController.DonorByUniqueNumber).Methods("POST")
 	donorR.Use(api.authController.MiddlewareValidateAccessToken)
 
+	// Donation routing
+	donationR := rv1.PathPrefix("/donation").Subrouter()
+	donationR.HandleFunc("/donations", api.donationController.DonationList).Methods("GET")
 	// Admin routing
 	adminR := rv1.PathPrefix("/admin").Subrouter()
 	// /v1/user/

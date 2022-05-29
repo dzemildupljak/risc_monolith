@@ -29,14 +29,14 @@ type SetPasswordValues struct {
 
 // A AuthController belong to the interface layer.
 type AuthController struct {
-	ai     AuthUsecase
+	ai     auth_usecase.AuthUsecase
 	av     utils.AuthValidator
 	mi     mail_usecase.MailUsecase
 	logger usecase.Logger
 }
 
 func NewAuthController(
-	ai AuthUsecase,
+	ai auth_usecase.AuthUsecase,
 	av utils.AuthValidator,
 	logger usecase.Logger) *AuthController {
 	return &AuthController{

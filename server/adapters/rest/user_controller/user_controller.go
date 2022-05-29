@@ -8,6 +8,7 @@ import (
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
+	"github.com/dzemildupljak/risc_monolith/server/usecase/user_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 	"github.com/gorilla/mux"
 )
@@ -15,13 +16,13 @@ import (
 // TODO send work to whitch interacotr depending on what url params has that request
 
 type UserController struct {
-	ui UserUsecaseRepository
+	ui user_usecase.UserUsecaseRepository
 	// ui     user_usecase.UserInteractor
 	logger usecase.Logger
 }
 
 func NewUserController(
-	ui UserUsecaseRepository,
+	ui user_usecase.UserUsecaseRepository,
 	logger usecase.Logger) *UserController {
 
 	return &UserController{
