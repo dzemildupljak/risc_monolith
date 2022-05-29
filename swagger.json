@@ -14,7 +14,7 @@
     "title": "Documentation of our awesome API.",
     "version": "1.0.0"
   },
-  "host": "localhost",
+  "host": "serene-fortress-45917.herokuapp.com",
   "basePath": "/v1",
   "paths": {
     "/admin": {
@@ -185,6 +185,23 @@
             "$ref": "#/responses/genericResponse"
           },
           "401": {
+            "$ref": "#/responses/genericResponse"
+          }
+        }
+      }
+    },
+    "/donation/donation": {
+      "get": {
+        "description": "You receive an list of donation events",
+        "tags": [
+          "Donation"
+        ],
+        "operationId": "ListDonation",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/donationListResponse"
+          },
+          "500": {
             "$ref": "#/responses/genericResponse"
           }
         }
@@ -610,6 +627,21 @@
       },
       "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
     },
+    "NullInt32": {
+      "description": "NullInt32 implements the Scanner interface so\nit can be used as a scan destination, similar to NullString.",
+      "type": "object",
+      "title": "NullInt32 represents an int32 that may be null.",
+      "properties": {
+        "Int32": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "Valid": {
+          "type": "boolean"
+        }
+      },
+      "x-go-package": "database/sql"
+    },
     "NullTime": {
       "description": "NullTime implements the Scanner interface so\nit can be used as a scan destination, similar to NullString.",
       "type": "object",
@@ -624,6 +656,37 @@
         }
       },
       "x-go-package": "database/sql"
+    },
+    "showDonation": {
+      "type": "object",
+      "properties": {
+        "event_end_date": {
+          "$ref": "#/definitions/NullTime"
+        },
+        "event_location": {
+          "type": "string",
+          "x-go-name": "EventLocation"
+        },
+        "event_name": {
+          "type": "string",
+          "x-go-name": "EventName"
+        },
+        "event_number_blood_donors": {
+          "$ref": "#/definitions/NullInt32"
+        },
+        "event_organization": {
+          "type": "string",
+          "x-go-name": "EventOrganization"
+        },
+        "event_organizer": {
+          "type": "string",
+          "x-go-name": "EventOrganizer"
+        },
+        "event_start_date": {
+          "$ref": "#/definitions/NullTime"
+        }
+      },
+      "x-go-package": "_/home/dzemil/Projects/golang/risc_monolith/server/utils"
     },
     "showDonor": {
       "type": "object",
@@ -784,6 +847,20 @@
       "description": "AuthResponse",
       "schema": {
         "$ref": "#/definitions/AuthResponse"
+      }
+    },
+    "donationListResponse": {
+      "description": "List of donations with basic info",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "Donors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/showDonation"
+            }
+          }
+        }
       }
     },
     "donorListResponse": {

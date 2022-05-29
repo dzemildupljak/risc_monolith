@@ -119,3 +119,23 @@ type user struct {
 	Createdat           time.Time    `json:"createdat"`
 	Updatedat           time.Time    `json:"updatedat"`
 }
+
+//////////////////////////////////////
+type showDonation struct {
+	EventName              string        `json:"event_name"`
+	EventLocation          string        `json:"event_location"`
+	EventStartDate         sql.NullTime  `json:"event_start_date"`
+	EventEndDate           sql.NullTime  `json:"event_end_date"`
+	EventOrganizer         string        `json:"event_organizer"`
+	EventOrganization      string        `json:"event_organization"`
+	EventNumberBloodDonors sql.NullInt32 `json:"event_number_blood_donors"`
+}
+
+// List of donations with basic info
+// swagger:response donationListResponse
+type ListDonationResponseWrapper struct {
+	// in:body
+	Body struct {
+		Donors []showDonation
+	}
+}

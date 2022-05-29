@@ -2,7 +2,6 @@ package donation_rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
@@ -27,7 +26,7 @@ func NewDonationEventController(
 }
 
 func (dc *DonationEventController) DonationList(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Donation list====")
+
 	params := domain.DonationEventsListParams{
 		RowOrder:  "",
 		LimitSize: 10,
