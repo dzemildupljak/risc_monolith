@@ -118,8 +118,9 @@ func main() {
 	adminR.HandleFunc("/users", api.authController.Index).Methods("GET")
 	adminR.Use(api.authController.MiddlewareValidateAdminAccessToken)
 
-	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
-	methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
+	headers := handlers.AllowedHeaders([]string{"*"})
+	methods := handlers.AllowedMethods([]string{"*"})
+	// methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	http.ListenAndServe(app_port, handlers.CORS(headers, methods, origins)(r))
