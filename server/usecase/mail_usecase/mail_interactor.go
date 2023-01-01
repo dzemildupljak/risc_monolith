@@ -13,8 +13,9 @@ import (
 var LinkToVerifyMail = "<p>Thanks for using our aplication</p><p>Confirm your account <a href=\"localhost:8080/verify/mail?email=dzemildupljak@mail.com&code=vaIujDpH&type=1\" target=\"_blank\">here</a></p>"
 
 type templatedata struct {
-	Name string
-	URL  string
+	Name                string
+	Reset_password_code string
+	URL                 string
 }
 
 type Mail struct {
@@ -39,6 +40,7 @@ func NewMailInteractor(l usecase.Logger) *MailInteractor {
 }
 
 func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
+	var mailbody string
 	from := os.Getenv("MAIL_USERNAME")
 	password := os.Getenv("MAIL_PASSWORD")
 
@@ -64,22 +66,36 @@ func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 			Name: user_name,
 			URL:  host_adress + "/v1/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
 		}
+		t, err := template.ParseFiles("templates/email_vrification.html")
+
+		if err != nil {
+			return
+		}
+		buf := new(bytes.Buffer)
+		if err = t.Execute(buf, templateData); err != nil {
+			return
+		}
+		mailbody = buf.String()
+
 	} else {
 		templateData = templatedata{
-			Name: user_name,
-			URL:  host_adress + "/password-reset?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+			Name:                user_name,
+			Reset_password_code: verifyCode,
+			// URL:                 host_adress + "/password-reset?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
 		}
-	}
-	t, err := template.ParseFiles("templates/email_vrification.html")
+		t, err := template.ParseFiles("templates/reset_password.html")
 
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
+		buf := new(bytes.Buffer)
+		if err = t.Execute(buf, templateData); err != nil {
+			return
+		}
+		mailbody = buf.String()
+
 	}
-	buf := new(bytes.Buffer)
-	if err = t.Execute(buf, templateData); err != nil {
-		return
-	}
-	mailbody := buf.String()
+
 	// Generate template for email
 
 	fmt.Println("Sending email")
