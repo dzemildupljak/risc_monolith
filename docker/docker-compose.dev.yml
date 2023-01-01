@@ -15,13 +15,15 @@ services:
     image: migrate/migrate
     volumes:
       - ../server/db/postgres/migrations:/app/server/db/postgres/migrations
-    command: ["-path", 
-              "/app/server/db/postgres/migrations", 
-              "-database", 
-              "postgres://${DB_USER}:${DB_PASSWORD}@risc-db:5432/${DB_NAME}?sslmode=disable", 
-              "up",
-            ]
-    links: 
+    command:
+      [
+        "-path",
+        "/app/server/db/postgres/migrations",
+        "-database",
+        "postgres://${DB_USER}:${DB_PASSWORD}@risc-db:5432/${DB_NAME}?sslmode=disable",
+        "up",
+      ]
+    links:
       - risc-db
     depends_on:
       - risc-db
@@ -30,7 +32,8 @@ services:
     image: risc-app-img-dev
     build:
       context: ../
-      dockerfile: docker/Dockerfile.dev
+    environment:
+      - ENVIRONMENT=DEV
     depends_on:
       - risc-db
     volumes:

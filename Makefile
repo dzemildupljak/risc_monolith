@@ -13,16 +13,16 @@ docker-build:
 	docker build -f ./docker/Dockerfile .
 
 docker-compose-dev-build:
-	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.dev build
+	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.docker.dev build
 
 docker-compose-dev-up:
-	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.dev up
+	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.docker.dev up
 
 docker-compose-dev-down:
-	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.dev down
+	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.docker.dev down
 
 docker-compose-dev-config:
-	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.dev config
+	docker-compose -f docker/docker-compose.dev.yml --env-file ./.env.docker.dev config
 
 docker-develop-migrateup:
 	docker run -v /home/dzemil/Projects/golang/risc_monolith/server/db/postgres/migrations:/server/db/postgres/migrations --network host migrate/migrate -path=/server/db/postgres/migrations -database "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable" up

@@ -1,7 +1,9 @@
 package mail_usecase
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"net/smtp"
 	"os"
 
@@ -53,10 +55,8 @@ func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 	// Authentication.
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
-	fmt.Println("Sending email")
-
+	// Generate template for email
 	templateData := templatedata{}
-	var msg []byte
 
 	if mail.Type == 1 {
 
@@ -64,17 +64,36 @@ func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 			Name: user_name,
 			URL:  host_adress + "/v1/verify/mail?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
 		}
+	} else {
+		templateData = templatedata{
+			Name: user_name,
+			URL:  host_adress + "/password-reset?email=" + mail.Reciever + "&code=" + verifyCode + "&type=" + fmt.Sprint(mail.Type),
+		}
+	}
+	t, err := template.ParseFiles("templates/email_vrification.html")
+
+	if err != nil {
+		return
+	}
+	buf := new(bytes.Buffer)
+	if err = t.Execute(buf, templateData); err != nil {
+		return
+	}
+	mailbody := buf.String()
+	// Generate template for email
+
+	fmt.Println("Sending email")
+
+	var msg []byte
+
+	if mail.Type == 1 {
 		msg = []byte(
 			"From: RISC Novi Pazar <" + from + ">\r\n" +
 				"To: " + to[0] + "\r\n" +
 				"Subject: RISC Novi Pazar - " + mail.MailTitle + "!\r\n" +
 				"MIME: MIME-version: 1.0\r\n" +
 				"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
-				"\r\n" +
-				`<html>
-					<h1>` + user_name + `</h1>
-					<a href="` + templateData.URL + `" target="_blank">Confirm email address</a>
-				</html>`)
+				"\r\n" + mailbody)
 	} else {
 		templateData = templatedata{
 			Name: user_name,
@@ -86,11 +105,7 @@ func (mi *MailInteractor) SendEmail(mail Mail, verifyCode, user_name string) {
 				"Subject: RISC Novi Pazar - " + mail.MailTitle + "!\r\n" +
 				"MIME: MIME-version: 1.0\r\n" +
 				"Content-Type: text/html; charset=\"UTF-8\";\r\n" +
-				"\r\n" +
-				`<html>
-					<h1>` + user_name + `</h1>
-					<p><b>` + verifyCode + `</b></p>
-				</html>`)
+				"\r\n" + mailbody)
 	}
 
 	// Sending email.

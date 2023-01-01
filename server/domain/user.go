@@ -73,8 +73,8 @@ type ShowUserParams struct {
 }
 
 type ChangePasswordParams struct {
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	NewPassword string `json:"new_password"`
+	Email       string `json:"email"`
 }
 
 type ChangePasswordValues struct {

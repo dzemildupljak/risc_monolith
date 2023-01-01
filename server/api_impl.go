@@ -12,6 +12,7 @@ import (
 	"github.com/dzemildupljak/risc_monolith/server/usecase/auth_usecase"
 	donationevent_usecase "github.com/dzemildupljak/risc_monolith/server/usecase/donation_event"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/donor_usecase"
+	"github.com/dzemildupljak/risc_monolith/server/usecase/mail_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/usecase/user_usecase"
 	"github.com/dzemildupljak/risc_monolith/server/utils"
 )
@@ -49,12 +50,13 @@ func ApiImplementation(db sql.DB, l usecase.Logger) Api {
 
 	authInteractor := auth_usecase.NewAuthInteractor(authRepo, l)
 	userInteractor := user_usecase.NewUserInteractor(userRepo, l)
+	mailInteractor := mail_usecase.NewMailInteractor(l)
 	donorInteractor := donor_usecase.NewDonorInteractor(donorRepo, l, *mapper)
 	donationInteractor := donationevent_usecase.NewDonationEventInteractor(donationRepo, l)
 
 	authValidator := utils.NewAuthValidator(l)
 
-	authController := auth_rest.NewAuthController(authInteractor, *authValidator, l)
+	authController := auth_rest.NewAuthController(authInteractor, *authValidator, mailInteractor, l)
 	userController := user_rest.NewUserController(userInteractor, l)
 	donorController := donor_rest.NewDonorController(donorInteractor, l)
 	donationController := donation_rest.NewDonationEventController(donationInteractor, l)

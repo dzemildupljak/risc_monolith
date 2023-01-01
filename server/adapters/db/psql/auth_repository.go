@@ -360,6 +360,6 @@ WHERE email = $2
 `
 
 func (q *AuthRepository) ChangePassword(ctx context.Context, arg domain.ChangePasswordParams) error {
-	_, err := q.Queries.db.ExecContext(ctx, changePassword, arg.Password, arg.Email)
+	_, err := q.Queries.db.ExecContext(ctx, changePassword, arg.NewPassword, arg.Email)
 	return err
 }

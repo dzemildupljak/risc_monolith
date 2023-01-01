@@ -273,6 +273,11 @@ func (auth *AuthInteractor) RegisterUser(
 	ctx context.Context,
 	u domain.CreateUserParams) (string, error) {
 
+	hashedPass, err := hashPassword(u.Password)
+	if err != nil {
+		return "", err
+	}
+
 	usr := domain.CreateRegisterUserParams{
 		MailVerfyCode:   utils.GenerateRandomString(8),
 		MailVerfyExpire: time.Now().Add(720 * time.Hour),
@@ -280,13 +285,25 @@ func (auth *AuthInteractor) RegisterUser(
 		Role:            "user",
 		Email:           u.Email,
 		Username:        u.Username,
-		Password:        u.Password,
-		Tokenhash:       u.Tokenhash,
+		Password:        hashedPass,
+		Tokenhash:       utils.GenerateRandomString(15),
 	}
 
-	err := auth.AuthRepository.CreateRegisterUser(ctx, usr)
+	err = auth.AuthRepository.CreateRegisterUser(ctx, usr)
 
 	return usr.MailVerfyCode, err
+}
+func hashPassword(password string) (string, error) {
+
+	hashedPass, err := bcrypt.GenerateFromPassword(
+		[]byte(password),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return string(hashedPass), nil
 }
 
 func (auth *AuthInteractor) RegisterOauthUser(
@@ -377,7 +394,13 @@ func (auth *AuthInteractor) UserMailVerify(
 func (auth *AuthInteractor) UpdatePassword(
 	ctx context.Context, usr domain.ChangePasswordParams) error {
 
-	err := auth.AuthRepository.ChangePassword(ctx, usr)
+	hashNewPass, err := hashPassword(usr.NewPassword)
+	usr.NewPassword = hashNewPass
+	if err != nil {
+		return err
+	}
+
+	err = auth.AuthRepository.ChangePassword(ctx, usr)
 
 	return err
 }

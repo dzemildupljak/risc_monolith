@@ -3,8 +3,11 @@ package auth_rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	"github.com/dzemildupljak/risc_monolith/server/domain"
 	"github.com/dzemildupljak/risc_monolith/server/usecase"
@@ -38,10 +41,12 @@ type AuthController struct {
 func NewAuthController(
 	ai auth_usecase.AuthUsecase,
 	av utils.AuthValidator,
+	mi mail_usecase.MailUsecase,
 	logger usecase.Logger) *AuthController {
 	return &AuthController{
 		logger: logger,
 		ai:     ai,
+		mi:     mi,
 		av:     av,
 	}
 }
@@ -62,20 +67,6 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 			})
 		return
 	}
-
-	hashedPass, err := ac.hashPassword(user.Password)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(
-			&utils.GenericResponse{
-				Status:  false,
-				Message: "Unable to create user.Please try again later",
-			})
-		return
-	}
-
-	user.Password = hashedPass
-	user.Tokenhash = utils.GenerateRandomString(15)
 
 	user.MailVerfyCode, err = ac.ai.RegisterUser(
 		context.Background(),
@@ -112,20 +103,6 @@ func (ac *AuthController) SignUp(w http.ResponseWriter, r *http.Request) {
 			Status:  true,
 			Message: "User created successfully",
 		})
-}
-
-func (ac *AuthController) hashPassword(password string) (string, error) {
-
-	hashedPass, err := bcrypt.GenerateFromPassword(
-		[]byte(password),
-		bcrypt.DefaultCost,
-	)
-	if err != nil {
-		ac.logger.LogError("unable to hash password", "error", err)
-		return "", err
-	}
-
-	return string(hashedPass), nil
 }
 
 func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
@@ -247,7 +224,7 @@ func (ac *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *AuthController) VerifyMail(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "text/html")
 
 	ac.logger.LogAccess("verifying the confimation code")
 	verificationData := r.Context().Value(VerificationDataKey{}).(VerificationData)
@@ -263,13 +240,21 @@ func (ac *AuthController) VerifyMail(w http.ResponseWriter, r *http.Request) {
 			})
 	}
 
-	ac.logger.LogAccess("successfully verified mail")
+	ac.logger.LogAccess(fmt.Sprintf("successfully verified mail %s", verificationData.Email))
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(&utils.GenericResponse{
-		Status:  true,
-		Message: "Successfully verified mail",
-	})
+	type Tdata struct{}
+	t_data := Tdata{}
+
+	t, _ := template.ParseFiles("templates/verify_email.html")
+
+	err = t.Execute(w, t_data)
+
+	if err != nil {
+		log.Println("Error executing template :", err)
+		return
+	}
+
 }
 
 func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -395,7 +380,6 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	hashNewPass, err := ac.hashPassword(resPassData.New_password)
 	if err != nil {
 		ac.logger.LogError(
 			"hasing new password failed - reset password")
@@ -411,8 +395,8 @@ func (ac *AuthController) PasswordResetCode(w http.ResponseWriter, r *http.Reque
 	err = ac.ai.UpdatePassword(
 		r.Context(),
 		domain.ChangePasswordParams{
-			Email:    user.Email,
-			Password: hashNewPass,
+			Email:       user.Email,
+			NewPassword: resPassData.New_password,
 		})
 	if err != nil {
 		ac.logger.LogError(
@@ -560,7 +544,7 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 			})
 		return
 	}
-	hashNewPass, err := ac.hashPassword(settPassData.New_password)
+
 	if err != nil {
 		ac.logger.LogError(
 			"hasing new password failed - reset password")
@@ -576,8 +560,8 @@ func (ac *AuthController) SetNewPassword(w http.ResponseWriter, r *http.Request)
 	err = ac.ai.UpdatePassword(
 		r.Context(),
 		domain.ChangePasswordParams{
-			Email:    user.Email,
-			Password: hashNewPass,
+			Email:       user.Email,
+			NewPassword: settPassData.New_password,
 		},
 	)
 	if err != nil {
@@ -740,7 +724,6 @@ func (ac *AuthController) ForgotPassword(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	hashNewPass, err := ac.hashPassword(reqUser.New_password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(
@@ -754,8 +737,8 @@ func (ac *AuthController) ForgotPassword(w http.ResponseWriter, r *http.Request)
 	err = ac.ai.UpdatePassword(
 		r.Context(),
 		domain.ChangePasswordParams{
-			Email:    reqUser.Email,
-			Password: hashNewPass,
+			Email:       reqUser.Email,
+			NewPassword: reqUser.New_password,
 		})
 
 	if err != nil {

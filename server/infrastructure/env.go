@@ -10,7 +10,14 @@ import (
 
 // Load is load configs from a env file.
 func Load(logger usecase.Logger) {
-	filePath := ".env"
+	var filePath string
+	environment := os.Getenv("ENVIRONMENT")
+
+	if environment == "DEV" {
+		filePath = ".env.docker.dev"
+	} else if environment == "PROD" {
+		filePath = ".env"
+	}
 
 	f, err := os.Open(filePath)
 	if err != nil {
